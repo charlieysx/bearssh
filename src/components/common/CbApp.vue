@@ -244,6 +244,7 @@ export default {
     border-radius: 5px;
     overflow: hidden;
     border: 1px solid #616161;
+    z-index: 100;
     .flex-column();
     > .__header {
         .p-r();
