@@ -1,0 +1,250 @@
+/**
+ * 测试用，给容器加上外边框
+ */
+.test-border(@color: black) {
+    outline: 1px solid @color;
+}
+/**
+ * 测试用，给容器添加背景颜色
+ */
+.test-bg(@color: black) {
+    background-color: @color;
+}
+
+.p-a() {
+    position: absolute;
+}
+
+.p-r() {
+    position: relative;
+}
+
+.p-f() {
+    position: fixed;
+}
+
+.page(@color: transparent) {
+    .p-r();
+    top: 0;
+    left: 0;
+    z-index: @page;
+    .wh(100%);
+    background-color: @color;
+}
+
+.bg-page(@img, @pathIndex: 1, @suffix: 'png') {
+    .bg-cover(@img, @pathIndex: 1, @suffix: 'png');
+    .page();
+}
+
+.wh(@w, @h: @w) {
+    & when (isunit(@w, '')) {
+        width: unit(@w, px);
+    }
+    & when not (isunit(@w, '')) {
+        width: @w;
+    }
+    & when (isunit(@h, '')) {
+        height: unit(@h, px);
+    }
+    & when not (isunit(@h, '')) {
+        height: @h;
+    }
+}
+
+.max-wh(@w, @h: @w) {
+    & when (isunit(@w, '')) {
+        max-width: unit(@w, px);
+    }
+    & when not (isunit(@w, '')) {
+        max-width: @w;
+    }
+    & when (isunit(@h, '')) {
+        max-height: unit(@h, px);
+    }
+    & when not (isunit(@h, '')) {
+        max-height: @h;
+    }
+}
+
+.min-wh(@w, @h: @w) {
+    & when (isunit(@w, '')) {
+        max-width: unit(@w, px);
+    }
+    & when not (isunit(@w, '')) {
+        max-width: @w;
+    }
+    & when (isunit(@h, '')) {
+        max-height: unit(@h, px);
+    }
+    & when not (isunit(@h, '')) {
+        max-height: @h;
+    }
+}
+
+.image-size(@url) {
+    width: unit(image-width(@url) / 100, px);
+    height: unit(image-height(@url)/ 100, px);
+}
+
+.img-size(@img, @pathIndex: 1, @suffix: 'png') {
+    @path: extract(@paths, @pathIndex);
+    .image-size('./src/assets/@{path}/@{img}.@{suffix}');
+}
+
+.contain() {
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-origin: content-box;
+}
+
+.cover() {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-origin: content-box;
+}
+
+.bg-img(@img, @pathIndex: 1, @suffix: 'png') {
+    @path: extract(@paths, @pathIndex);
+    background-size: 100% 100%;
+    background-image: url('~@/assets/@{path}/@{img}.@{suffix}');
+}
+
+.bg-fill(@img, @pathIndex: 1, @suffix: 'png') {
+    @path: extract(@paths, @pathIndex);
+    .bg-img(@img, @pathIndex, @suffix);
+    .wh(100%);
+}
+
+.bg-cover (@img, @pathIndex: 1, @suffix: 'png') {
+    .bg-img(@img, @pathIndex, @suffix);
+    .img-size(@img);
+    .cover();
+}
+
+.bg-contain (@img, @pathIndex: 1, @suffix: 'png') {
+    .bg-img(@img, @pathIndex, @suffix);
+    .img-size(@img);
+    .contain();
+}
+
+.bg-box(@box: border-box) {
+    box-sizing: @box;
+    background-origin: @box;
+}
+
+.flex(@j: center, @a: center) {
+    display: flex;
+    justify-content: @j;
+    align-items: @a;
+}
+
+.flex-column(@j: center, @a: center) {
+    .flex(@j, @a);
+    flex-direction: column;
+}
+
+.center(@position: 'a', @top: 50%, @left: 50%, @transform: true) {
+    & when (@position = 'a') {
+        .p-a();
+    }
+    & when (@position = 'r') {
+        .p-r();
+    }
+    & when (@position = 'f') {
+        .p-f();
+    }
+    & when (@transform = true) {
+        top: @top;
+        left: @left;
+        transform: translate3d(-50%, -50%, 0);
+    }
+    & when (@transform = false) {
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: auto;
+    }
+}
+
+.center-row(@position: 'a') {
+    & when (@position = 'a') {
+        .p-a();
+    }
+    & when (@position = 'r') {
+        .p-r();
+    }
+    & when (@position = 'f') {
+        .p-f();
+    }
+    left: 50%;
+    transform: translate3d(-50%, 0, 0);
+}
+
+.text-line(@line: 1) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    
+    & when (@line <= 1) {
+        white-space: nowrap;
+    }
+
+    & when (@line > 1) {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: @line;
+    }
+}
+
+.scroll(@nobal: true) {
+    -webkit-overflow-scrolling: touch;
+    overflow: scroll;
+
+    & when (@nobal = true) {
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+}
+
+.header(@color: white) {
+    .p-a();
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: @titleHeight;
+    z-index: @header;
+    font-size: 14px;
+    text-align: center;
+    .flex();
+    color: @color;
+    font-weight: bold;
+}
+
+.horizontal() {
+
+    //横屏
+    @media screen and (orientation: landscape) {
+        .wh(100vw, 100vh);
+    }
+
+    //竖屏
+    @media screen and (orientation: portrait) {
+        .wh(100vh, 100vw);
+        transform-origin: 0px 0px 0px;
+        transform: rotate(90deg) translate3d(0, -100vw, 0);
+    }
+}
+
+.horizontal-fix() {
+    transform-origin: 100vw 0 0;
+    transform: rotate(-90deg) translate3d(0, -100vw, 0);
+}
+
+.rotate(@time: 2s) {
+    transform-origin: center;
+    animation: rotate @time infinite linear;
+}
