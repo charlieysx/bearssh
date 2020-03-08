@@ -25,6 +25,7 @@
     "node-ssh": "^8.0.0",
     "sha1": "^1.1.1",
     "vue": "^2.6.6",
+    "vue-codemirror-lite": "^1.0.4",
     "vue-json-edit": "^1.3.2",
     "vue-router": "^3.0.1",
     "vue-slicksort": "^1.1.3"

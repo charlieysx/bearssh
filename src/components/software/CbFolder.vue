@@ -6,9 +6,6 @@ export default {
         uuid: {
             require: true
         },
-        path: {
-            default: '/'
-        },
         base: {
             type: Object
         },
@@ -26,6 +23,7 @@ export default {
             height: 500
         },
         config: {
+            path: '/'
         }
     },
     data() {
@@ -80,7 +78,7 @@ export default {
             next();
         },
         changePath() {
-            this.pathList = this.path.split('/');
+            this.pathList = this.config.path.split('/');
         },
         clickFile(item, index) {
             if (this.inputItem) {
@@ -91,11 +89,19 @@ export default {
                 this.inputItem = null;
                 this.inputItemList = [];
             }
+            this.pathList.splice(index + 1);
+            this.pathList.push(item.filename);
+            this.cacheIndex = index;
             if (item.type === 'd') {
-                this.pathList.splice(index + 1);
-                this.pathList.push(item.filename);
-                this.cacheIndex = index;
                 ipcRenderer.send('ssh', 'command:ls', `ls -la ${this.dirPath}`);
+            } else  if (item.type === '-') {
+                this.rightList.splice(this.cacheIndex);
+                const ext = item.path.split('.').slice(-1)[0];
+                if (['png', 'jpg', 'jpeg', 'gif', 'svg'].includes(ext)) {
+                    this.$bus.addApp('CbImage', {path: item.path});
+                } else {
+                    this.$bus.addApp('CbCode', {path: item.path});
+                }
             }
         },
         clickFileName(item, index) {

@@ -41,7 +41,7 @@ const bus = new Vue({
         };
     },
     created() {
-        ['CbFolder'].forEach(name=> {
+        ['CbFolder', 'CbCode', 'CbImage'].forEach(name=> {
             const ctor = Vue.component(name);
             if (!ctor) {
                 throw `app[${name}]不存在`;
@@ -89,11 +89,22 @@ const bus = new Vue({
         includesApp(appName) {
             return this.desktop.appList.findIndex(app=> app.appName === appName) > -1;
         },
-        addApp(app) {
-            this.desktop.appList.push({
+        addApp(app, config = {}) {
+            if (typeof app === 'string') {
+                app = this.desktop.dockList.find(item=> item.appName === app);
+                if (!app) {
+                    throw `${app} 程序不存在`;
+                }
+            }
+            const newConfig = {
                 uuid: new Date().getTime(),
-                ...app
-            });
+                ...app,
+                config: {
+                    ...app.config,
+                    ...config
+                }
+            };
+            this.desktop.appList.push(newConfig);
             this.desktop.currentApp = this.desktop.appList[this.desktop.appList.length - 1];
         },
         removeApp(uuid) {
@@ -153,6 +164,30 @@ const bus = new Vue({
                 console.log(e);
             }
         },
+        parseFileContent(data) {
+            this.$emit(data.command, {
+                content: data.res,
+                item: null
+            });
+        },
+        parseImg(data) {
+            const ext = data.command.split('.').slice(-1)[0];
+            const list = data.res.split('\n').map(item=> {
+                return item.split(' ').slice(1, 7).map(item=> parseInt(+item, 2));
+            }).reduce((pre, cur)=> {
+                pre.push(...cur);
+                return pre;
+            }, []);
+            let binary = '';
+            let bytes = new Uint8Array(list);
+            for (let len = bytes.byteLength, i = 0; i < len; ++i) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            this.$emit(data.command, {
+                content: `data:image/${ext};base64,${window.btoa(binary)}`,
+                item: null
+            });
+        }
     }
 });
 
