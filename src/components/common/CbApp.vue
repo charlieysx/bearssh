@@ -330,25 +330,26 @@ export default {
     > .__resize-item {
         .p-a();
         .wh(10);
+        z-index: 999;
         background-color: transparent;
         &.__lt {
-            top: -5px;
-            left: -5px;
+            top: 0px;
+            left: 0px;
             cursor: nw-resize;
         }
         &.__rt {
-            top: -5px;
-            right: -5px;
+            top: 0px;
+            right: 0px;
             cursor: ne-resize;
         }
         &.__lb {
-            bottom: -5px;
-            left: -5px;
+            bottom: 0px;
+            left: 0px;
             cursor: sw-resize;
         }
         &.__rb {
-            bottom: -5px;
-            right: -5px;
+            bottom: 0px;
+            right: 0px;
             cursor: se-resize;
         }
     }
@@ -356,30 +357,30 @@ export default {
         .p-a();
         background-color: transparent;
         &.__t {
-            top: -5px;
-            left: -5px;
+            top: 0px;
+            left: 0px;
             width: 100%;
-            height: 10px;
+            height: 5px;
             cursor: n-resize;
         }
         &.__b {
-            bottom: -5px;
-            left: -5px;
+            bottom: 0px;
+            left: 0px;
             width: 100%;
-            height: 10px;
+            height: 5px;
             cursor: s-resize;
         }
         &.__l {
-            top: -5px;
-            left: -5px;
-            width: 10px;
+            top: 0px;
+            left: 0px;
+            width: 5px;
             height: 100%;
             cursor: w-resize;
         }
         &.__r {
-            top: -5px;
-            right: -5px;
-            width: 10px;
+            top: 0px;
+            right: 0px;
+            width: 5px;
             height: 100%;
             cursor: e-resize;
         }

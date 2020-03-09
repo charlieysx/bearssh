@@ -41,7 +41,7 @@ const bus = new Vue({
         };
     },
     created() {
-        ['CbFolder', 'CbCode', 'CbImage'].forEach(name=> {
+        ['CbFolder', 'CbCode', 'CbImage', 'CbTest'].forEach(name=> {
             const ctor = Vue.component(name);
             if (!ctor) {
                 throw `app[${name}]不存在`;
