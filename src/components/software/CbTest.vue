@@ -1,8 +1,8 @@
 <script>
 import { ipcRenderer } from 'electron';
-import CbApp from '../common/CbApp2';
+import CbApp from '@c/common/CbApp2';
 export default {
-    name: 'CbImage',
+    name: 'CbTest',
     extends: CbApp,
     setting: {
         appName: 'CbTest',
@@ -23,9 +23,6 @@ export default {
     watch: {
     },
     methods: {
-        async beforeClose() {
-            console.log('触发关闭2');
-        },
         renderSubTitle(h) {
             return <div class="test-wrap" style="position: relative;">
                 test
