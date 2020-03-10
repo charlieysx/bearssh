@@ -1,6 +1,6 @@
 <script>
 import { ipcRenderer } from 'electron';
-import CbApp from '@c/common/CbApp2';
+import CbApp from '@c/common/CbApp';
 export default {
     name: 'CbTest',
     extends: CbApp,

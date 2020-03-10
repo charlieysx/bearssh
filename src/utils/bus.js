@@ -50,12 +50,6 @@ const bus = new Vue({
             if (!setting) {
                 throw `app[${name}]没有配置项`;
             }
-            // 组件继承
-            if (setting.extends) {
-                const baseCtor = Vue.component(setting.extends);
-                const baseSetting = (new baseCtor()).$options.setting;
-                setting.base = Object.assign({}, baseSetting, setting.base);
-            }
             this.desktop.dockList.push({
                 ...setting
             });

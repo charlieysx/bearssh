@@ -17,9 +17,7 @@ export default {
                         return <app.appName 
                             key={app.uuid}
                             uuid={app.uuid}
-                            base={app.base}
-                            props={{...app.config}}
-                            config={app.config}>
+                            props={{...app.config}}>
                         </app.appName>;
                     })
                 }
