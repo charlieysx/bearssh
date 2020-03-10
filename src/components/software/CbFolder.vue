@@ -1,14 +1,9 @@
 <script>
 import { ipcRenderer } from 'electron';
-import CbApp from '@c/common/CbApp2';
+import CbApp from '@c/common/CbApp';
 export default {
     name: 'CbFolder',
     extends: CbApp,
-    props: {
-        config: {
-            type: Object
-        }
-    },
     setting: {
         appName: 'CbFolder',
         name: '文件夹',
@@ -26,7 +21,7 @@ export default {
         };
     },
     created() {
-        if (this.config === undefined) {
+        if (!this.uuid) {
             return;
         }
         this.changePath();
@@ -67,11 +62,8 @@ export default {
                 }
             }, 10);
         },
-        onClose(next) {
-            next();
-        },
         changePath() {
-            this.pathList = this.config.path.split('/');
+            this.pathList = this.path.split('/');
         },
         clickFile(item, index) {
             if (this.inputItem) {
@@ -168,6 +160,9 @@ export default {
         },
         dirPath() {
             return this.pathList.join('/');
+        },
+        title() {
+            return this.currentPathName || '文件夹';
         }
     }
 };

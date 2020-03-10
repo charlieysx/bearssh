@@ -1,29 +1,17 @@
 <script>
 import { ipcRenderer } from 'electron';
+import CbApp from '@c/common/CbApp';
 export default {
     name: 'CbImage',
-    props: {
-        uuid: {
-            require: true
-        },
-        base: {
-            type: Object
-        },
-        config: {
-            type: Object
-        }
-    },
+    extends: CbApp,
     setting: {
-        extends: 'CbApp',
         appName: 'CbImage',
         name: '图片预览',
         icon: require('@imgs/icon-folder.png'),
-        base: {
+        config: {
+            path: '',
             width: 500,
             height: 500
-        },
-        config: {
-            path: ''
         }
     },
     data() {
@@ -33,19 +21,19 @@ export default {
         };
     },
     created() {
-        if (this.config === undefined) {
+        if (!this.uuid) {
             return;
         }
-        if (this.config.path === '') {
+        if (this.path === '') {
             // 新建
         } else {
             this.changePath();
-            const ext = this.config.path.split('.').slice(-1)[0];
+            const ext = this.path.split('.').slice(-1)[0];
             if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
                 this.imgType = ext;
                 this.loading = true;
-                ipcRenderer.send('ssh', 'command:xxd', `xxd -b ${this.config.path}`);
-                this.$bus.$on(`xxd -b ${this.config.path}`, this.onFileContent);
+                ipcRenderer.send('ssh', 'command:xxd', `xxd -b ${this.path}`);
+                this.$bus.$on(`xxd -b ${this.path}`, this.onFileContent);
             }
         }
     },
@@ -57,62 +45,44 @@ export default {
         }
     },
     methods: {
-        onClose(next) {
-            next();
-        },
         changePath() {
-            this.pathList = this.config.path.split('/');
+            this.pathList = this.path.split('/');
         },
         onFileContent(data) {
             this.loading = false;
-            this.$bus.$off(`xxd -b ${this.config.path}`, this.onFileContent);
+            this.$bus.$off(`xxd -b ${this.path}`, this.onFileContent);
             this.base64 = data.content;
             this.item = data.item;
+        },
+        renderContent(h) {
+            return (
+                <div class="image-wrap" v-loading={this.loading}>
+                    {this.base64 && <img class="preImg" src={this.base64} />}
+                </div>
+            );
         }
     },
     computed: {
         currentPathName() {
             return this.pathList[this.pathList.length - 1];
+        },
+        title() {
+            return this.currentPathName || '图片预览';
         }
-    },
-    render(h) {
-        return (
-            <CbApp 
-                title={this.currentPathName || '图片预览'}
-                class="image-wrap"
-                uuid={this.uuid}
-                opt={this.base}
-                onClose={this.onClose}
-                scopedSlots={{
-                    content: ()=> {
-                        return <div class="content" v-loading={this.loading}>
-                            <img class="preImg" src={this.base64} />
-                        </div>;
-                    }
-                }}>
-            </CbApp>
-        );
     }
 };
 </script>
 <style lang="less">
 .image-wrap {
-    .p-a();
-    .title {
-        width: 100%;
-        height: 20px;
-    }
-    .content {
-        .p-r();
-        .wh(calc(100% - 3px));
-        margin: 1.5px;
-        font-size: 12px;
-        overflow: hidden;
-        .flex();
-        > .preImg {
-            .wh(100%);
-            object-fit: contain;
-        }
+    .p-r();
+    .wh(calc(100% - 3px));
+    margin: 1.5px;
+    font-size: 12px;
+    overflow: hidden;
+    .flex();
+    > .preImg {
+        .wh(100%);
+        object-fit: contain;
     }
 }
 </style>
