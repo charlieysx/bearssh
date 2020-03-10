@@ -46,9 +46,6 @@ export default {
                 this.loading = true;
                 ipcRenderer.send('ssh', 'command:xxd', `xxd -b ${this.config.path}`);
                 this.$bus.$on(`xxd -b ${this.config.path}`, this.onFileContent);
-            } else if (ext === 'svg') {
-                this.imgType = 'svg';
-                this.getContent();
             }
         }
     },
@@ -89,12 +86,7 @@ export default {
                 scopedSlots={{
                     content: ()=> {
                         return <div class="content" v-loading={this.loading}>
-                            {
-                                this.base64 && this.imgType !== 'svg' && <img class="preImg" src={this.base64} />
-                            }
-                            {
-                                this.base64 && this.imgType === 'svg' && <div class="preImg" id="svg" domPropsInnerHTML={this.base64}></div>
-                            }
+                            <img class="preImg" src={this.base64} />
                         </div>;
                     }
                 }}>
@@ -114,7 +106,6 @@ export default {
         .p-r();
         .wh(calc(100% - 3px));
         margin: 1.5px;
-        // background-color: #323232;
         font-size: 12px;
         overflow: hidden;
         .flex();

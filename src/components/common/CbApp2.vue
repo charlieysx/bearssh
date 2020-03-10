@@ -9,19 +9,38 @@ export default {
             type: String,
             default: ''
         },
-        opt: {
-            type: Object
+        minWidth: {
+            type: Number,
+            default: 180
+        },
+        minHeight: {
+            type: Number,
+            default: 180
+        },
+        maxWidth: {
+            type: Number,
+            default: -1
+        },
+        maxHeight: {
+            type: Number,
+            default: -1
+        },
+        width: {
+            type: Number,
+            default: 180
+        },
+        height: {
+            type: Number,
+            default: 180
+        },
+        left: {
+            type: Number,
+            default: -1
+        },
+        top: {
+            type: Number,
+            default: -1
         }
-    },
-    setting: {
-        minWidth: 180,
-        minHeight: 180,
-        maxWidth: -1,
-        maxHeight: -1,
-        width: 180,
-        height: 180,
-        left: -1,
-        top: -1
     },
     data() {
         return {
@@ -29,17 +48,17 @@ export default {
             innerLeft: 0,
             innerWidth: 180,
             innerHeight: 180,
-            anim: false
+            animBorder: false
         };
     },
     created() {
-        if (this.opt === undefined) {
+        if (!this.uuid) {
             return;
         }
-        this.innerLeft = this.opt.left === -1 ? (this.$bus.system.contentWidth - this.opt.width) / 2 : this.opt.left;
-        this.innerTop = this.opt.top === -1 ? (this.$bus.system.contentHeight - this.opt.height) / 2 : this.opt.top;
-        this.innerWidth = this.opt.width;
-        this.innerHeight = this.opt.height;
+        this.innerLeft = this.left === -1 ? (this.$bus.system.contentWidth - this.width) / 2 : this.left;
+        this.innerTop = this.top === -1 ? (this.$bus.system.contentHeight - this.height) / 2 : this.top;
+        this.innerWidth = this.width;
+        this.innerHeight = this.height;
 
         this.mouseXY = null;
         this.widgetXY = null;
@@ -55,7 +74,7 @@ export default {
         }
     },
     methods: {
-        mousedown(e) {
+        __mousedown(e) {
             if (!this.isActive) {
                 document.addEventListener('mouseup', this.mouseup, true);
                 return;
@@ -81,10 +100,10 @@ export default {
             this.mouseXY = {x: e.pageX, y: e.pageY};
             this.widgetXY = {x: this.innerLeft, y: this.innerTop};
             this.resizeWH = {width: this.innerWidth, height: this.innerHeight};
-            document.addEventListener('mousemove', this.mousemove, true);
-            document.addEventListener('mouseup', this.mouseup, true);
+            document.addEventListener('mousemove', this.__mousemove, true);
+            document.addEventListener('mouseup', this.__mouseup, true);
         },
-        mousemove(e) {
+        __mousemove(e) {
             if (!this.isActive) {
                 return;
             }
@@ -101,12 +120,12 @@ export default {
                 this.innerLeft = left;
                 this.innerTop = Math.max(0, top);
             } else if (this.dragType === 'resize') {
-                this.doResize(e);
+                this.__doResize(e);
             }
         },
-        mouseup(e) {
-            document.removeEventListener('mousemove', this.mousemove, true);
-            document.removeEventListener('mouseup', this.mouseup, true);
+        __mouseup(e) {
+            document.removeEventListener('mousemove', this.__mousemove, true);
+            document.removeEventListener('mouseup', this.__mouseup, true);
             this.mouseXY = null;
             this.widgetXY = null;
             this.resizeWH = null;
@@ -115,7 +134,7 @@ export default {
                 this.$bus.activeApp(this.uuid);
             }
         },
-        doResize(e) {
+        __doResize(e) {
             let dx = e.pageX - this.mouseXY.x;
             let dy = e.pageY - this.mouseXY.y;
             let left = 0;
@@ -126,105 +145,112 @@ export default {
                 case 'top':
                     let t = this.widgetXY.y + dy;
                     top = Math.max(t, 0);
-                    top = Math.min(this.widgetXY.y + this.resizeWH.height - this.opt.minHeight, top);
-                    if (this.opt.maxHeight !== -1) {
-                        top = Math.max(this.widgetXY.y + this.resizeWH.height - this.opt.maxHeight, top);
+                    top = Math.min(this.widgetXY.y + this.resizeWH.height - this.minHeight, top);
+                    if (this.maxHeight !== -1) {
+                        top = Math.max(this.widgetXY.y + this.resizeWH.height - this.maxHeight, top);
                     }
                     this.innerHeight += (this.innerTop - top);
-                    this.innerHeight = Math.max(this.innerHeight, this.opt.minHeight);
-                    if (this.opt.maxHeight !== -1) {
-                        this.innerHeight = Math.min(this.innerHeight, this.opt.maxHeight);
+                    this.innerHeight = Math.max(this.innerHeight, this.minHeight);
+                    if (this.maxHeight !== -1) {
+                        this.innerHeight = Math.min(this.innerHeight, this.maxHeight);
                     }
                     this.innerTop = top;
                     break;
                 case 'bottom':
                     top = dy;
                     this.innerHeight = this.resizeWH.height + top;
-                    this.innerHeight = Math.max(this.innerHeight, this.opt.minHeight);
+                    this.innerHeight = Math.max(this.innerHeight, this.minHeight);
                     break;
                 case 'left':
                     let tLeft = this.widgetXY.x + dx;
                     left = Math.max(tLeft, 0);
                     this.innerWidth += (this.innerLeft - left);
-                    this.innerWidth = Math.max(this.innerWidth, this.opt.minWidth);
-                    left = Math.min(this.widgetXY.x + this.resizeWH.width - this.opt.minWidth, left);
+                    this.innerWidth = Math.max(this.innerWidth, this.minWidth);
+                    left = Math.min(this.widgetXY.x + this.resizeWH.width - this.minWidth, left);
                     this.innerLeft = left;
                     break;
                 case 'right':
                     left = dx;
                     this.innerWidth = this.resizeWH.width + left;
-                    this.innerWidth = Math.max(this.innerWidth, this.opt.minWidth);
+                    this.innerWidth = Math.max(this.innerWidth, this.minWidth);
                     break;
                 }
             }
         },
-        op(type) {
+        __op(type) {
             switch(type) {
             case 'close':
-                this.$emit('close', ()=> {
-                    this.$bus.removeApp(this.uuid);
-                });
+                this.beforeClose()
+                    .then(()=> {
+                        this.$bus.removeApp(this.uuid);
+                    });
                 break;
             case 'hide':
                 break;
             case 'resize':
                 if (this.resizeType === 'min') {
                     this.resizeType = 'max';
-                    this.innerWidth = this.opt.maxWidth === -1 ? this.$bus.system.contentWidth : this.opt.maxWidth;
-                    this.innerHeight = this.opt.maxHeight === -1 ? this.$bus.system.contentHeight : this.opt.maxHeight;
+                    this.innerWidth = this.maxWidth === -1 ? this.$bus.system.contentWidth : this.maxWidth;
+                    this.innerHeight = this.maxHeight === -1 ? this.$bus.system.contentHeight : this.maxHeight;
                 } else {
                     this.resizeType = 'min';
-                    this.innerWidth = this.opt.width;
-                    this.innerHeight = this.opt.height;
+                    this.innerWidth = this.width;
+                    this.innerHeight = this.height;
                 }
                 this.innerLeft = (this.$bus.system.contentWidth - this.innerWidth) / 2;
                 this.innerTop = (this.$bus.system.contentHeight - this.innerHeight) / 2;
-                this.anim = true;
+                this.animBorder = true;
                 setTimeout(()=> {
-                    this.anim = false;
+                    this.animBorder = false;
                 }, 200);
                 break;
             }
         },
-        getContentRender(h) {
-            return '';
-        }
+        async beforeClose() {
+            console.log('触发关闭1');
+        },
+        renderHeader(h) {
+            const iconCloseClass = this.isActive ? 'disable-drag' : '__icon-disable';
+            const iconHideClass = this.isActive ? 'disable-drag' : '__icon-disable';
+            const iconResizeClass = this.isActive ? 'disable-drag' : '__icon-disable';
+
+            const titleStyle = {};
+            if (!this.isActive) {
+                titleStyle.color = '#636363';
+            }
+            return (
+                <div class="__header">
+                    <div class="__op-wrap" data-dragtype="drag" onDblclick={this.__op.bind(this, 'resize')}>
+                        <div class="__op">
+                            <div class={['__icon __icon-close', iconCloseClass]} onClick={this.__op.bind(this, 'close')}></div>
+                            <div class={['__icon __icon-hide', iconHideClass]} onClick={this.__op.bind(this, 'hide')}></div>
+                            <div class={['__icon __icon-resize', iconResizeClass]} onClick={this.__op.bind(this, 'resize')}></div>
+                        </div>
+                        <div class="__title" style={titleStyle}>{this.title}</div>
+                    </div>
+                    <div class="__config-title">
+                        {this.renderSubTitle(h)}
+                    </div>
+                </div>
+            );
+        },
+        renderSubTitle(h) { return ''; },
+        renderContent(h) { return ''; }
     },
     render(h) {
-
-        const iconCloseClass = this.isActive ? 'disable-drag' : '__icon-disable';
-        const iconHideClass = this.isActive ? 'disable-drag' : '__icon-disable';
-        const iconResizeClass = this.isActive ? 'disable-drag' : '__icon-disable';
-
-        const titleStyle = {};
-        if (!this.isActive) {
-            titleStyle.color = '#636363';
-        }
         return (
             <div class="__cb-app"
-                onMousedown={this.mousedown}
+                onMousedown={this.__mousedown}
                 style={{
                     top: this.innerTop + 'px',
                     left: this.innerLeft + 'px',
                     width: this.innerWidth + 'px',
                     height: this.innerHeight + 'px',
-                    transition: this.anim ? 'all .2s linear' : ''
+                    transition: this.animBorder ? 'all .2s linear' : ''
                 }}>
-                <div class="__header">
-                    <div class="__op-wrap" data-dragtype="drag" onDblclick={this.op.bind(this, 'resize')}>
-                        <div class="__op">
-                            <div class={['__icon __icon-close', iconCloseClass]} onClick={this.op.bind(this, 'close')}></div>
-                            <div class={['__icon __icon-hide', iconHideClass]} onClick={this.op.bind(this, 'hide')}></div>
-                            <div class={['__icon __icon-resize', iconResizeClass]} onClick={this.op.bind(this, 'resize')}></div>
-                        </div>
-                        <div class="__title" style={titleStyle}>{this.title}</div>
-                    </div>
-                    <div class="__config-title">
-                        {this.$scopedSlots.title && this.$scopedSlots.title()}
-                    </div>
-                </div>
+                {this.renderHeader(h)}
                 <div class="__content">
-                    {this.getContentRender(h) || (this.$scopedSlots.content && this.$scopedSlots.content())}
+                    {this.renderContent(h)}
                 </div>
                 <div class="__resize-item-line __t" data-dragtype="resize" data-dir="top"></div>
                 <div class="__resize-item-line __b" data-dragtype="resize" data-dir="bottom"></div>

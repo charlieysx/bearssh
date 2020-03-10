@@ -88,6 +88,7 @@ export default {
                 this.inputItem.showInput = false;
                 this.inputItem = null;
                 this.inputItemList = [];
+                return;
             }
             this.pathList.splice(index + 1);
             this.pathList.push(item.filename);
@@ -97,7 +98,7 @@ export default {
             } else  if (item.type === '-') {
                 this.rightList.splice(this.cacheIndex);
                 const ext = item.path.split('.').slice(-1)[0];
-                if (['png', 'jpg', 'jpeg', 'gif', 'svg'].includes(ext)) {
+                if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
                     this.$bus.addApp('CbImage', {path: item.path});
                 } else {
                     this.$bus.addApp('CbCode', {path: item.path});
@@ -106,6 +107,14 @@ export default {
         },
         clickFileName(item, index) {
             return (e)=> {
+                if (item.type === '-' && this.dirPath !== item.path) {
+                    e.stopPropagation();
+                    this.pathList.splice(index + 1);
+                    this.pathList.push(item.filename);
+                    this.cacheIndex = index;
+                    this.rightList.splice(this.cacheIndex);
+                    return;
+                }
                 if ((this.dirPath + '/').indexOf(item.path + '/') === 0) {
                     e.stopPropagation();
                     // 编辑文件/文件夹名称
