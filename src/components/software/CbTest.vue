@@ -1,31 +1,17 @@
 <script>
 import { ipcRenderer } from 'electron';
-import CbApp from '../common/CbApp';
+import CbApp from '../common/CbApp2';
 export default {
     name: 'CbImage',
     extends: CbApp,
-    props: {
-        uuid: {
-            require: true
-        },
-        base: {
-            type: Object
-        },
-        config: {
-            type: Object
-        }
-    },
     setting: {
-        extends: 'CbApp',
         appName: 'CbTest',
-        name: '图片预览',
+        name: '测试',
         icon: require('@imgs/icon-folder.png'),
-        base: {
+        config: {
+            path: '',
             width: 500,
             height: 500
-        },
-        config: {
-            path: ''
         }
     },
     data() {
@@ -37,38 +23,27 @@ export default {
     watch: {
     },
     methods: {
-        onClose(next) {
-            next();
+        async beforeClose() {
+            console.log('触发关闭2');
+        },
+        renderSubTitle(h) {
+            return <div class="test-wrap" style="position: relative;">
+                test
+            </div>;
+        },
+        renderContent(h) {
+            return <div class="test-wrap">
+                test
+            </div>;
         }
     },
     computed: {
-    },
-    render(h) {
-        return (
-            <div></div>
-        );
     }
 };
 </script>
 <style lang="less">
-.image-wrap {
+.test-wrap {
     .p-a();
-    .title {
-        width: 100%;
-        height: 20px;
-    }
-    .content {
-        .p-r();
-        .wh(calc(100% - 3px));
-        margin: 1.5px;
-        // background-color: #323232;
-        font-size: 12px;
-        overflow: hidden;
-        .flex();
-        > .preImg {
-            .wh(100%);
-            object-fit: contain;
-        }
-    }
+    color: white;
 }
 </style>
