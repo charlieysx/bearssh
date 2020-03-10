@@ -206,9 +206,7 @@ export default {
                 break;
             }
         },
-        async beforeClose() {
-            console.log('触发关闭1');
-        },
+        async beforeClose() {},
         renderHeader(h) {
             const iconCloseClass = this.isActive ? 'disable-drag' : '__icon-disable';
             const iconHideClass = this.isActive ? 'disable-drag' : '__icon-disable';

@@ -1,29 +1,22 @@
 <script>
 import { ipcRenderer } from 'electron';
+import CbApp from '@c/common/CbApp2';
 export default {
     name: 'CbFolder',
+    extends: CbApp,
     props: {
-        uuid: {
-            require: true
-        },
-        base: {
-            type: Object
-        },
         config: {
             type: Object
         }
     },
     setting: {
-        extends: 'CbApp',
         appName: 'CbFolder',
         name: '文件夹',
         icon: require('@imgs/icon-folder.png'),
-        base: {
+        config: {
+            path: '/',
             width: 600,
             height: 500
-        },
-        config: {
-            path: '/'
         }
     },
     data() {
@@ -124,6 +117,49 @@ export default {
                     this.inputItemList = this.rightList[index - 1];
                 }
             };
+        },
+        renderContent(h) {
+            return (
+                <div class="folder-wrap">
+                    <div class="left-dir">
+                        {
+                            this.$bus.fileList.map(item=> {
+                                return (
+                                    <div class={['item', (this.dirPath + '/').indexOf(item.path + '/') === 0 ? 'active' : '']}
+                                        onClick={this.clickFile.bind(this, item, 0)}>
+                                        {item.filename}
+                                    </div>
+                                );
+                            })
+                        }
+                    </div>
+                    <div class="right-dir" ref="rightDir">
+                        {
+                            this.rightList.map((list, index)=> {
+                                return (
+                                    <div class="list-col">
+                                        {
+                                            list.map(item=> {
+                                                return (
+                                                    <div class={['item', (this.dirPath + '/').indexOf(item.path + '/') === 0 ? 'active' : '']}
+                                                        onClick={this.clickFile.bind(this, item, index + 1)}>
+                                                        {
+                                                            item.showInput ? <input v-model={item.inputValue} onClick={e=> e.stopPropagation()} /> : 
+                                                                <span onClick={this.clickFileName(item, index + 1)}>
+                                                                    {item.filename}
+                                                                </span>
+                                                        }
+                                                    </div>
+                                                );
+                                            })
+                                        }
+                                    </div>
+                                );
+                            })
+                        }
+                    </div>
+                </div>
+            );
         }
     },
     computed: {
@@ -133,86 +169,45 @@ export default {
         dirPath() {
             return this.pathList.join('/');
         }
-    },
-    render(h) {
-        return (
-            <CbApp 
-                title={this.currentPathName}
-                class="folder-wrap"
-                uuid={this.uuid}
-                opt={this.base}
-                onClose={this.onClose}
-                scopedSlots={{
-                    // title: ()=> {
-                    //     return <div class="title">
-                    //     </div>;
-                    // },
-                    content: ()=> {
-                        return <div class="content">
-                            <div class="left-dir">
-                                {
-                                    this.$bus.fileList.map(item=> {
-                                        return (
-                                            <div class={['item', (this.dirPath + '/').indexOf(item.path + '/') === 0 ? 'active' : '']}
-                                                onClick={this.clickFile.bind(this, item, 0)}>
-                                                {item.filename}
-                                            </div>
-                                        );
-                                    })
-                                }
-                            </div>
-                            <div class="right-dir" ref="rightDir">
-                                {
-                                    this.rightList.map((list, index)=> {
-                                        return (
-                                            <div class="list-col">
-                                                {
-                                                    list.map(item=> {
-                                                        return (
-                                                            <div class={['item', (this.dirPath + '/').indexOf(item.path + '/') === 0 ? 'active' : '']}
-                                                                onClick={this.clickFile.bind(this, item, index + 1)}>
-                                                                {
-                                                                    item.showInput ? <input v-model={item.inputValue} onClick={e=> e.stopPropagation()} /> : 
-                                                                        <span onClick={this.clickFileName(item, index + 1)}>
-                                                                            {item.filename}
-                                                                        </span>
-                                                                }
-                                                            </div>
-                                                        );
-                                                    })
-                                                }
-                                            </div>
-                                        );
-                                    })
-                                }
-                            </div>
-                        </div>;
-                    }
-                }}>
-            </CbApp>
-        );
     }
 };
 </script>
 <style lang="less">
 .folder-wrap {
-    .p-a();
-    .title {
-        width: 100%;
-        height: 20px;
-    }
-    .content {
+    .p-r();
+    .wh(100%);
+    overflow: hidden;
+    background-color: #222222;
+    .flex();
+    > .left-dir {
         .p-r();
-        .wh(100%);
-        overflow: hidden;
-        background-color: #222222;
-        .flex();
-        > .left-dir {
+        .wh(180px, 100%);
+        .scroll();
+        display: inline-block;
+        background-color: #303030;
+        border-right: 1px solid #000000;
+        > .item {
+            .wh(100%, 20px);
+            .text-line();
+            padding: 0 5px;
+            box-sizing: border-box;
+            color: white;
+            cursor: default;
+            &.active {
+                background-color: #59575a;
+            }
+        }
+    }
+    > .right-dir {
+        .p-r();
+        .wh(calc(100% - 181px), 100%);
+        overflow-x: scroll;
+        overflow-y: hidden;
+        display: -webkit-box;
+        > .list-col {
             .p-r();
             .wh(180px, 100%);
             .scroll();
-            display: inline-block;
-            background-color: #303030;
             border-right: 1px solid #000000;
             > .item {
                 .wh(100%, 20px);
@@ -223,30 +218,6 @@ export default {
                 cursor: default;
                 &.active {
                     background-color: #59575a;
-                }
-            }
-        }
-        > .right-dir {
-            .p-r();
-            .wh(calc(100% - 181px), 100%);
-            overflow-x: scroll;
-            overflow-y: hidden;
-            display: -webkit-box;
-            > .list-col {
-                .p-r();
-                .wh(180px, 100%);
-                .scroll();
-                border-right: 1px solid #000000;
-                > .item {
-                    .wh(100%, 20px);
-                    .text-line();
-                    padding: 0 5px;
-                    box-sizing: border-box;
-                    color: white;
-                    cursor: default;
-                    &.active {
-                        background-color: #59575a;
-                    }
                 }
             }
         }
