@@ -7,11 +7,11 @@ export default {
         },
         minWidth: {
             type: Number,
-            default: 180
+            default: 10
         },
         minHeight: {
             type: Number,
-            default: 180
+            default: 10
         },
         maxWidth: {
             type: Number,
@@ -23,11 +23,11 @@ export default {
         },
         width: {
             type: Number,
-            default: 180
+            default: 10
         },
         height: {
             type: Number,
-            default: 180
+            default: 10
         },
         left: {
             type: Number,
@@ -55,6 +55,7 @@ export default {
         if (!this.uuid) {
             return;
         }
+        this.$bus.saveAppInstance(this);
         this.innerLeft = this.left === -1 ? (this.$bus.system.contentWidth - this.width) / 2 : this.left;
         this.innerTop = this.top === -1 ? (this.$bus.system.contentHeight - this.height) / 2 : this.top;
         this.innerWidth = this.width;
@@ -269,7 +270,7 @@ export default {
 <style lang="less">
 .__cb-app {
     .p-a();
-    min-width: 180px;
+    min-width: 70px;
     background-color: #222223;
     border-radius: 5px;
     overflow: hidden;

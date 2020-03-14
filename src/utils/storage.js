@@ -37,6 +37,10 @@ class Storage {
         }
         return value;
     }
+
+    remove(key) {
+        window.localStorage.removeItem(this.generateKey(key));
+    }
 }
 
 const storage = new Storage(process.env.VUE_APP_STORAGE_PREFIX);
