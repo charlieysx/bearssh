@@ -21,6 +21,7 @@ export default {
     },
     setting: {
         appName: 'CbCode',
+        sign: '3',
         name: '编辑器',
         icon: require('@imgs/icon-folder.png'),
         config: {
@@ -53,25 +54,20 @@ export default {
                 this.mode = 'vue';
             }
             this.changePath();
-            ipcRenderer.send('ssh', 'command:cat', `cat ${this.path}`);
-            this.$bus.$on(`cat ${this.path}`, this.onFileContent);
-        }
-    },
-    watch: {
-        '$bus.fileList': {
-            handler(newValue, oldValue) {
-            },
-            deep: true
+            this.$ssh.readFile(this.path)
+                .then(data=> {
+                    this.content = data;
+                    this.loading = false;
+                })
+                .catch(e=> {
+                    this.$message.error('文件加载失败');
+                    console.log(e);
+                });
         }
     },
     methods: {
         changePath() {
             this.pathList = this.path.split('/');
-        },
-        onFileContent(data) {
-            this.$bus.$off(`cat ${this.path}`, this.onFileContent);
-            this.content = data.content;
-            this.item = data.item;
         },
         renderContent(h) {
             return (

@@ -6,7 +6,8 @@ import '@utils/func';
 import '@c/common';
 import '@c/form';
 import '@c/software';
-import '@utils/bus';
+import '@utils/bus/index.js';
+import './plugins/ssh';
 
 import Vue from 'vue';
 import App from './App.vue';

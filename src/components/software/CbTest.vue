@@ -6,6 +6,7 @@ export default {
     extends: CbApp,
     setting: {
         appName: 'CbTest',
+        sign: '4',
         name: '测试',
         icon: require('@imgs/icon-folder.png'),
         config: {

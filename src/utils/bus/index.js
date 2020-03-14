@@ -1,25 +1,43 @@
 import Vue from 'vue';
-const { ipcRenderer } = require('electron');
-ipcRenderer.on('ssh', (sender, {type, data})=> {
-    // console.log(data);
-    switch(type) {
-    case 'command:ls':
-        Vue.$bus.parseFile(data);
-        break;
-    case 'command:cat':
-        Vue.$bus.parseFileContent(data);
-        break;
-    case 'command:xxd':
-        Vue.$bus.parseImg(data);
-        break;
-    case 'command:echo':
-        console.log(data);
-        break;
-    }
-    Vue.$loading.hide();
-});
+import desktop from './desktop';
+import fileSystem from './fileSystem';
+// ipcRenderer.on('ssh', (sender, {type, data})=> {
+//     // console.log(data);
+//     switch(type) {
+//     case 'command:ls':
+//         Vue.$bus.parseFile(data);
+//         break;
+//     case 'command:cat':
+//         Vue.$bus.parseFileContent(data);
+//         break;
+//     case 'command:xxd':
+//         Vue.$bus.parseImg(data);
+//         break;
+//     case 'command:echo':
+//         console.log(data);
+//         break;
+//     case 'log':
+//         // const list = data.split('\n').map(item=> {
+//         //     return item.split(' ').slice(1, 7).map(item=> parseInt(+item, 2));
+//         // }).reduce((pre, cur)=> {
+//         //     pre.push(...cur);
+//         //     return pre;
+//         // }, []);
+//         let binary = '';
+//         let bytes = new Uint8Array(data);
+//         for (let len = bytes.byteLength, i = 0; i < len; ++i) {
+//             binary += String.fromCharCode(bytes[i]);
+//         }
+//         console.log(binary);
+//     }
+//     Vue.$loading.hide();
+// });
 
 const bus = new Vue({
+    mixins: [
+        desktop,
+        fileSystem
+    ],
     data() {
         return {
             hadLogin: false,
@@ -31,83 +49,10 @@ const bus = new Vue({
                 height: 750,
                 contentWidth: 1200,
                 contentHeight: 672
-            },
-            desktop: {
-                dockList: [],
-                appList: [],
-                currentApp: null
-            },
-            fileList: []
+            }
         };
     },
-    created() {
-        ['CbFolder', 'CbCode', 'CbImage', 'CbTest'].forEach(name=> {
-            const ctor = Vue.component(name);
-            if (!ctor) {
-                throw `app[${name}]不存在`;
-            }
-            const setting = (new ctor()).$options.setting;
-            if (!setting) {
-                throw `app[${name}]没有配置项`;
-            }
-            this.desktop.dockList.push({
-                ...setting
-            });
-        });
-    },
     methods: {
-        activeApps(appName) {
-            this.desktop.appList.sort((a, b)=> {
-                if (a.appName === appName) {
-                    return -1;
-                }
-                if (b.appName === appName) {
-                    return 1;
-                }
-                return 0;
-            });
-            this.currentApp = this.desktop.appList[this.desktop.appList.length - 1];
-        },
-        activeApp(uuid) {
-            const index = this.desktop.appList.findIndex(app=> app.uuid === uuid);
-            if (index > -1) {
-                const app = this.desktop.appList[index];
-                this.desktop.appList.splice(index, 1);
-                this.desktop.appList.push(app);
-                this.desktop.currentApp = this.desktop.appList[this.desktop.appList.length - 1];
-            }
-        },
-        isActiveApp(uuid) {
-            return this.desktop.currentApp && this.desktop.currentApp.uuid === uuid;
-        },
-        includesApp(appName) {
-            return this.desktop.appList.findIndex(app=> app.appName === appName) > -1;
-        },
-        addApp(app, config = {}) {
-            if (typeof app === 'string') {
-                app = this.desktop.dockList.find(item=> item.appName === app);
-                if (!app) {
-                    throw `${app} 程序不存在`;
-                }
-            }
-            const newConfig = {
-                uuid: new Date().getTime(),
-                ...app,
-                config: {
-                    ...app.config,
-                    ...config
-                }
-            };
-            this.desktop.appList.push(newConfig);
-            this.desktop.currentApp = this.desktop.appList[this.desktop.appList.length - 1];
-        },
-        removeApp(uuid) {
-            const index = this.desktop.appList.findIndex(app=> app.uuid === uuid);
-            if (index > -1) {
-                this.desktop.appList.splice(index, 1);
-                this.desktop.currentApp = this.desktop.appList[this.desktop.appList.length - 1];
-            }
-        },
         getFileList(list, pathList) {
             if (pathList.length <= 1) {
                 return list;
