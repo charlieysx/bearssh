@@ -91,7 +91,7 @@ export default {
                 if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
                     this.$bus.addApp(this.$bus.getAppConfig('CbImage', '2'), {path: item.path});
                 } else {
-                    this.$bus.addApp(this.$bus.getAppConfig('CbCode', '3'), {path: item.path});
+                    this.$bus.addApp(this.$bus.getAppConfig('CbEditor', '3'), {path: item.path});
                 }
             }
         },

@@ -11,7 +11,7 @@ export default {
         };
     },
     created() {
-        ['CbFolder', 'CbCode', 'CbImage', 'CbTest'].forEach(name=> {
+        ['CbFolder', 'CbEditor', 'CbImage', 'CbTest'].forEach(name=> {
             const ctor = Vue.component(name);
             if (!ctor) {
                 throw `app[${name}]不存在`;

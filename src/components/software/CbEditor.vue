@@ -1,32 +1,33 @@
 <script>
-import { codemirror } from 'vue-codemirror-lite';
-require('codemirror/mode/javascript/javascript');
-require('codemirror/mode/vue/vue');
-require('codemirror/addon/hint/show-hint.js');
-require('codemirror/addon/hint/show-hint.css');
-require('codemirror/addon/hint/javascript-hint.js');
 import { ipcRenderer } from 'electron';
 import CbApp from '@c/common/CbApp';
+import Ace from '@c/ace/Ace';
+import 'brace/mode/javascript';
+import 'brace/theme/monokai';
+
 export default {
-    name: 'CbCode',
+    name: 'CbEditor',
     extends: CbApp,
+    components: {
+        Ace
+    },
     props: {
         editable: {
             type: Boolean,
             default: true
         }
     },
-    components: {
-        Codemirror: codemirror
-    },
+    // components: {
+    //     Codemirror: codemirror
+    // },
     setting: {
-        appName: 'CbCode',
+        appName: 'CbEditor',
         sign: '3',
         name: '编辑器',
         icon: require('@imgs/icon-folder.png'),
         config: {
             path: '',
-            editable: true,
+            readOnly: false,
             width: 600,
             height: 500
         }
@@ -44,7 +45,6 @@ export default {
             return;
         }
         if (this.path === '') {
-            this.editable = true;
             // 新建
         } else {
             const ext = this.path.split('.').slice(-1)[0];
@@ -54,6 +54,7 @@ export default {
                 this.mode = 'vue';
             }
             this.changePath();
+            this.loading = true;
             this.$ssh.readFile(this.path)
                 .then(data=> {
                     this.content = data;
@@ -65,16 +66,37 @@ export default {
                 });
         }
     },
+    watch: {
+        innerWidth() {
+            if (this.editor) {
+                this.editor.resize();
+            }
+        },
+        innerHeight() {
+            if (this.editor) {
+                this.editor.resize();
+            }
+        }
+    },
     methods: {
         changePath() {
             this.pathList = this.path.split('/');
         },
         renderContent(h) {
             return (
-                <div class="code-wrap">
-                    <Codemirror
-                        v-model={this.content}>
-                    </Codemirror>
+                <div class="code-wrap" v-loading={this.loading}>
+                    <Ace
+                        name="editor"
+                        mode={this.mode}
+                        theme="monokai"
+                        readOnly={this.readOnly}
+                        wrapEnabled={true}
+                        enableBasicAutocompletion={true}
+                        enableLiveAutocompletion={true}
+                        width={this.innerWidth}
+                        height={this.innerHeight}
+                        editorProps={{$blockScrolling: true}}
+                        v-model={this.content} />
                 </div>
             );
         }
@@ -97,6 +119,9 @@ export default {
     background-color: white;
     .scroll();
     font-size: 12px;
+    > #editor {
+        .wh(100%);
+    }
 }
 .vue-codemirror-wrap {
     .wh(100%);
