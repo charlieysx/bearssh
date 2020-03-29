@@ -19,7 +19,7 @@ export default {
         type: Number,
         default: 2,
     },
-    name: {
+    editorName: {
         type: String,
         default: 'brace-editor',
     },

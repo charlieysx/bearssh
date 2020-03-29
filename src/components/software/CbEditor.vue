@@ -2,8 +2,6 @@
 import { ipcRenderer } from 'electron';
 import CbApp from '@c/common/CbApp';
 import Ace from '@c/ace/Ace';
-import 'brace/mode/javascript';
-import 'brace/theme/monokai';
 
 export default {
     name: 'CbEditor',
@@ -17,9 +15,6 @@ export default {
             default: true
         }
     },
-    // components: {
-    //     Codemirror: codemirror
-    // },
     setting: {
         appName: 'CbEditor',
         sign: '3',
@@ -28,13 +23,13 @@ export default {
         config: {
             path: '',
             readOnly: false,
-            width: 600,
-            height: 500
+            width: 800,
+            height: 600
         }
     },
     data() {
         return {
-            mode: '',
+            mode: 'text',
             content: '',
             item: null,
             pathList: []
@@ -84,18 +79,20 @@ export default {
         },
         renderContent(h) {
             return (
-                <div class="code-wrap" v-loading={this.loading}>
+                <div class="editor-wrap" v-loading={this.loading}>
                     <Ace
-                        name="editor"
+                        editorName={`editor-${this.uuid}`}
+                        className="cb-editor"
                         mode={this.mode}
                         theme="monokai"
                         readOnly={this.readOnly}
                         wrapEnabled={true}
                         enableBasicAutocompletion={true}
                         enableLiveAutocompletion={true}
+                        enableSnippets={true}
                         width={this.innerWidth}
                         height={this.innerHeight}
-                        editorProps={{$blockScrolling: true}}
+                        editorProps={{$blockScrolling: Infinity}}
                         v-model={this.content} />
                 </div>
             );
@@ -112,21 +109,12 @@ export default {
 };
 </script>
 <style lang="less">
-.code-wrap {
+.editor-wrap {
     .p-r();
     .wh(calc(100% - 3px));
     margin: 1.5px;
-    background-color: white;
-    .scroll();
-    font-size: 12px;
-    > #editor {
+    > .cb-editor {
         .wh(100%);
     }
-}
-.vue-codemirror-wrap {
-    .wh(100%);
-}
-.CodeMirror {
-    .wh(100%);
 }
 </style>
