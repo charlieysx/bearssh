@@ -4,6 +4,8 @@ import isEqual from 'lodash/isEqual';
 import 'brace/ext/language_tools';
 import { editorOptions } from './editorOptions';
 import propsValue from './props';
+import 'brace/mode/javascript';
+import 'brace/theme/monokai';
 
 const props = Object.assign({}, propsValue, {
     value: {
@@ -35,8 +37,8 @@ export default {
             return divStyle;
         },
         getId() {
-            const { name } = this.$props;
-            return name;
+            const { editorName } = this.$props;
+            return editorName;
         }
     },
     watch: {
@@ -68,8 +70,6 @@ export default {
             if (newVal !== oldVal) {
                 this.editor.getSession().setUseWrapMode(newVal);
             }
-        
-        
         },
         showPrintMargin(newVal, oldVal) {
             if (newVal !== oldVal) {
@@ -156,9 +156,9 @@ export default {
             commands,
             annotations,
             markers,
-            name,
+            editorName,
         } = this.$props;
-        this.editor = ace.edit(name);
+        this.editor = ace.edit(editorName);
       
         if (onBeforeLoad) {
             onBeforeLoad(ace);
@@ -299,7 +299,7 @@ export default {
             }
         },
         handleMarkers(markers) {
-        // remove foreground markers
+            // remove foreground markers
             let currentMarkers = this.editor.getSession().getMarkers(true);
             for (const i in currentMarkers) {
                 if (currentMarkers.hasOwnProperty(i)) {
