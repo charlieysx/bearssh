@@ -88,10 +88,13 @@ export default {
             } else  if (item.type === '-') {
                 this.rightList.splice(this.cacheIndex);
                 const ext = item.path.split('.').slice(-1)[0];
+                let config = '';
                 if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
-                    this.$bus.addApp(this.$bus.getAppConfig('CbImage', '2'), {path: item.path});
+                    config = this.$bus.getAppConfig('CbImage', '2');
+                    config && this.$bus.addApp(config, {path: item.path});
                 } else {
-                    this.$bus.addApp(this.$bus.getAppConfig('CbEditor', '3'), {path: item.path});
+                    config = this.$bus.getAppConfig('CbEditor', '3');
+                    config && this.$bus.addApp(config, {path: item.path});
                 }
             }
         },
