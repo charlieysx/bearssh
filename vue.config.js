@@ -1,9 +1,17 @@
 const path = require('path');
 const projectConfig = require('./project.config.js');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const resolve = dir=> path.join(__dirname, './', dir);
 
 process.env.VUE_APP_STORAGE_PREFIX = projectConfig.storagePrefix;
+
+const genPlugins = () => {
+    const list = [];
+
+    list.push(new MonacoWebpackPlugin());
+    return list;
+};
 
 module.exports = {
     configureWebpack: () => ({
@@ -21,7 +29,8 @@ module.exports = {
                 '@directive': resolve('src/directive'),
                 '@plugins': resolve('src/plugins'),
             }
-        }
+        },
+        plugins: genPlugins()
     }),
     pluginOptions: {
         'style-resources-loader': {

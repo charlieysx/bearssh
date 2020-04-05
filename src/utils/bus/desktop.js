@@ -54,7 +54,12 @@ export default {
             return this.desktop.appList.findIndex(app=> app.sign === appConfig.sign) > -1;
         },
         getAppConfig(appName, sign) {
-            return this.desktop.dockList.find(item=> item.sign === sign && item.appName === appName);
+            const config = this.desktop.dockList.find(item=> item.sign === sign && item.appName === appName);
+            if (!config) {
+                this.$message.error('找不到可以打开该文件的app');
+                return;
+            }
+            return config;
         },
         addApp(appConfig, config = {}) {
             let app = this.desktop.dockList.find(item=> item.sign === appConfig.sign);

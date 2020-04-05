@@ -48,7 +48,9 @@ export default {
             innerLeft: 0,
             innerWidth: 180,
             innerHeight: 180,
-            animBorder: false
+            animBorder: false,
+            contentWidth: 0,
+            contentHeight: 0
         };
     },
     created() {
@@ -75,6 +77,14 @@ export default {
         },
         title() {
             return '';
+        }
+    },
+    watch: {
+        innerHeight() {
+            this.contentHeight = this.$refs.appContent.offsetHeight;
+        },
+        innerWidth() {
+            this.contentWidth = this.$refs.appContent.offsetWidth;
         }
     },
     methods: {
@@ -251,7 +261,7 @@ export default {
                     transition: this.animBorder ? 'all .2s linear' : ''
                 }}>
                 {this.renderHeader(h)}
-                <div class="__content">
+                <div class="__content" ref="appContent">
                     {this.renderContent(h)}
                 </div>
                 <div class="__resize-item-line __t" data-dragtype="resize" data-dir="top"></div>
