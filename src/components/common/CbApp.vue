@@ -7,11 +7,11 @@ export default {
         },
         minWidth: {
             type: Number,
-            default: 180
+            default: 10
         },
         minHeight: {
             type: Number,
-            default: 180
+            default: 10
         },
         maxWidth: {
             type: Number,
@@ -23,11 +23,11 @@ export default {
         },
         width: {
             type: Number,
-            default: 180
+            default: 10
         },
         height: {
             type: Number,
-            default: 180
+            default: 10
         },
         left: {
             type: Number,
@@ -48,13 +48,16 @@ export default {
             innerLeft: 0,
             innerWidth: 180,
             innerHeight: 180,
-            animBorder: false
+            animBorder: false,
+            contentWidth: 0,
+            contentHeight: 0
         };
     },
     created() {
         if (!this.uuid) {
             return;
         }
+        this.$bus.saveAppInstance(this);
         this.innerLeft = this.left === -1 ? (this.$bus.system.contentWidth - this.width) / 2 : this.left;
         this.innerTop = this.top === -1 ? (this.$bus.system.contentHeight - this.height) / 2 : this.top;
         this.innerWidth = this.width;
@@ -74,6 +77,14 @@ export default {
         },
         title() {
             return '';
+        }
+    },
+    watch: {
+        innerHeight() {
+            this.contentHeight = this.$refs.appContent.offsetHeight;
+        },
+        innerWidth() {
+            this.contentWidth = this.$refs.appContent.offsetWidth;
         }
     },
     methods: {
@@ -250,7 +261,7 @@ export default {
                     transition: this.animBorder ? 'all .2s linear' : ''
                 }}>
                 {this.renderHeader(h)}
-                <div class="__content">
+                <div class="__content" ref="appContent">
                     {this.renderContent(h)}
                 </div>
                 <div class="__resize-item-line __t" data-dragtype="resize" data-dir="top"></div>
@@ -269,7 +280,7 @@ export default {
 <style lang="less">
 .__cb-app {
     .p-a();
-    min-width: 180px;
+    min-width: 70px;
     background-color: #222223;
     border-radius: 5px;
     overflow: hidden;

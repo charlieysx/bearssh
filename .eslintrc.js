@@ -20,7 +20,8 @@ module.exports = {
         'no-unused-vars': 'off',
         'no-case-declarations': 'off',
         'semi':['error','always'],
-        'indent': ['error', 4]
+        'indent': ['error', 4],
+        'no-constant-condition': 'off'
     },
     parserOptions: {
         parser: 'babel-eslint'

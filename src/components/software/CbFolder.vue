@@ -6,6 +6,7 @@ export default {
     extends: CbApp,
     setting: {
         appName: 'CbFolder',
+        sign: '1',
         name: '文件夹',
         icon: require('@imgs/icon-folder.png'),
         config: {
@@ -25,23 +26,7 @@ export default {
             return;
         }
         this.changePath();
-        ipcRenderer.send('ssh', 'command:ls', `ls -la ${this.dirPath}`);
-    },
-    watch: {
-        '$bus.fileList': {
-            handler(newValue, oldValue) {
-                const list = this.$bus.getItemFileList(this.$bus.fileList, this.dirPath + '/');
-                if (this.cacheIndex !== undefined) {
-                    this.rightList.splice(this.cacheIndex);
-                }
-                this.rightList.push(list);
-                this.$nextTick(()=> {
-                    const dom = this.$refs.rightDir;
-                    this.scrollToLeft(dom, Math.max(dom.scrollWidth - dom.offsetWidth, 0));
-                });
-            },
-            deep: true
-        }
+        this.readdir();
     },
     methods: {
         scrollToLeft (target, left) {
@@ -62,6 +47,26 @@ export default {
                 }
             }, 10);
         },
+        readdir() {
+            this.$ssh.readdir(this.dirPath)
+                .then(res=> {
+                    const list = this.$bus.saveFileList(this.dirPath, res);
+                    if (this.dirPath === '/') {
+                        return;
+                    }
+                    if (this.cacheIndex !== undefined) {
+                        this.rightList.splice(this.cacheIndex);
+                    }
+                    this.rightList.push(list);
+                    this.$nextTick(()=> {
+                        const dom = this.$refs.rightDir;
+                        this.scrollToLeft(dom, Math.max(dom.scrollWidth - dom.offsetWidth, 0));
+                    });
+                })
+                .catch(e=> {
+                    this.$message.error('该文件不是目录');
+                });
+        },
         changePath() {
             this.pathList = this.path.split('/');
         },
@@ -78,77 +83,86 @@ export default {
             this.pathList.splice(index + 1);
             this.pathList.push(item.filename);
             this.cacheIndex = index;
-            if (item.type === 'd') {
-                ipcRenderer.send('ssh', 'command:ls', `ls -la ${this.dirPath}`);
+            if (item.type === 'd' || item.type === 'l') {
+                this.readdir();
             } else  if (item.type === '-') {
                 this.rightList.splice(this.cacheIndex);
                 const ext = item.path.split('.').slice(-1)[0];
+                let config = '';
                 if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
-                    this.$bus.addApp('CbImage', {path: item.path});
+                    config = this.$bus.getAppConfig('CbImage', '2');
+                    config && this.$bus.addApp(config, {path: item.path});
                 } else {
-                    this.$bus.addApp('CbCode', {path: item.path});
+                    config = this.$bus.getAppConfig('CbEditor', '3');
+                    config && this.$bus.addApp(config, {path: item.path});
                 }
             }
         },
         clickFileName(item, index) {
             return (e)=> {
-                if (item.type === '-' && this.dirPath !== item.path) {
-                    e.stopPropagation();
-                    this.pathList.splice(index + 1);
-                    this.pathList.push(item.filename);
-                    this.cacheIndex = index;
-                    this.rightList.splice(this.cacheIndex);
-                    return;
-                }
-                if ((this.dirPath + '/').indexOf(item.path + '/') === 0) {
-                    e.stopPropagation();
-                    // 编辑文件/文件夹名称
-                    // console.log(this.rightList[index - 1]);
-                    item.showInput = true;
-                    this.inputItem = item;
-                    this.inputItemList = this.rightList[index - 1];
-                }
+                // todo 做文件名修改
+                // if (item.type === '-' && this.dirPath !== item.path) {
+                //     e.stopPropagation();
+                //     this.pathList.splice(index + 1);
+                //     this.pathList.push(item.filename);
+                //     this.cacheIndex = index;
+                //     this.rightList.splice(this.cacheIndex);
+                //     return;
+                // }
+                // if ((this.dirPath + '/').indexOf(item.path + '/') === 0) {
+                //     e.stopPropagation();
+                //     // 编辑文件/文件夹名称
+                //     // console.log(this.rightList[index - 1]);
+                //     item.showInput = true;
+                //     this.inputItem = item;
+                //     this.inputItemList = this.rightList[index - 1];
+                // }
             };
         },
         renderContent(h) {
             return (
                 <div class="folder-wrap">
                     <div class="left-dir">
-                        {
-                            this.$bus.fileList.map(item=> {
-                                return (
-                                    <div class={['item', (this.dirPath + '/').indexOf(item.path + '/') === 0 ? 'active' : '']}
-                                        onClick={this.clickFile.bind(this, item, 0)}>
-                                        {item.filename}
-                                    </div>
-                                );
-                            })
-                        }
+                        {this.$bus.file.list.map(item=> {
+                            return (
+                                <div class={[
+                                    'item',
+                                    (this.dirPath + '/').indexOf(item.path + '/') === 0 ? 'active' : '',
+                                    `file-type-${item.type}`,
+                                    item.isHidden ? 'file-type-hidden' : ''
+                                ]}
+                                onClick={this.clickFile.bind(this, item, 0)}>
+                                    {item.filename}
+                                </div>
+                            );
+                        })}
                     </div>
                     <div class="right-dir" ref="rightDir">
-                        {
-                            this.rightList.map((list, index)=> {
-                                return (
-                                    <div class="list-col">
-                                        {
-                                            list.map(item=> {
-                                                return (
-                                                    <div class={['item', (this.dirPath + '/').indexOf(item.path + '/') === 0 ? 'active' : '']}
-                                                        onClick={this.clickFile.bind(this, item, index + 1)}>
-                                                        {
-                                                            item.showInput ? <input v-model={item.inputValue} onClick={e=> e.stopPropagation()} /> : 
-                                                                <span onClick={this.clickFileName(item, index + 1)}>
-                                                                    {item.filename}
-                                                                </span>
-                                                        }
-                                                    </div>
-                                                );
-                                            })
-                                        }
-                                    </div>
-                                );
-                            })
-                        }
+                        {this.rightList.map((list, index)=> {
+                            return (
+                                <div class="list-col">
+                                    {list.map(item=> {
+                                        return (
+                                            <div class={[
+                                                'item',
+                                                (this.dirPath + '/').indexOf(item.path + '/') === 0 ? 'active' : '',
+                                                `file-type-${item.type}`,
+                                                item.isHidden ? 'file-type-hidden' : ''
+                                            ]}
+                                            onClick={this.clickFile.bind(this, item, index + 1)}>
+                                                {
+                                                    item.showInput ? 
+                                                        <input v-model={item.inputValue} onClick={e=> e.stopPropagation()} /> : 
+                                                        <span onClick={this.clickFileName(item, index + 1)}>
+                                                            {item.filename}
+                                                        </span>
+                                                }
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             );
@@ -192,6 +206,14 @@ export default {
                 background-color: #59575a;
             }
         }
+        > .file-type {
+            &-l {
+                color: #73f9fd;
+            }
+            &-hidden {
+                color: #5e5d5c;
+            }
+        }
     }
     > .right-dir {
         .p-r();
@@ -213,6 +235,14 @@ export default {
                 cursor: default;
                 &.active {
                     background-color: #59575a;
+                }
+            }
+            > .file-type {
+                &-l {
+                    color: #73f9fd;
+                }
+                &-hidden {
+                    color: #5e5d5c;
                 }
             }
         }
