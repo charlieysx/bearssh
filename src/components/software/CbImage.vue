@@ -6,6 +6,7 @@ export default {
     extends: CbApp,
     setting: {
         appName: 'CbImage',
+        sign: '2',
         name: '图片预览',
         icon: require('@imgs/icon-folder.png'),
         config: {
@@ -32,27 +33,26 @@ export default {
             if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
                 this.imgType = ext;
                 this.loading = true;
-                ipcRenderer.send('ssh', 'command:xxd', `xxd -b ${this.path}`);
-                this.$bus.$on(`xxd -b ${this.path}`, this.onFileContent);
+                this.$ssh.readFile(this.path, '')
+                    .then(data=> {
+                        let binary = '';
+                        let bytes = new Uint8Array(data);
+                        for (let len = bytes.byteLength, i = 0; i < len; ++i) {
+                            binary += String.fromCharCode(bytes[i]);
+                        }
+                        this.base64 = `data:image/${ext};base64,${window.btoa(binary)}`;
+                        this.loading = false;
+                    })
+                    .catch(e=> {
+                        this.$message.error('图片加载失败');
+                        console.log(e);
+                    });
             }
-        }
-    },
-    watch: {
-        '$bus.fileList': {
-            handler(newValue, oldValue) {
-            },
-            deep: true
         }
     },
     methods: {
         changePath() {
             this.pathList = this.path.split('/');
-        },
-        onFileContent(data) {
-            this.loading = false;
-            this.$bus.$off(`xxd -b ${this.path}`, this.onFileContent);
-            this.base64 = data.content;
-            this.item = data.item;
         },
         renderContent(h) {
             return (

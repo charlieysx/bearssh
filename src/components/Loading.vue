@@ -50,7 +50,8 @@ export default {
 <style lang="less">
 .project-loading {
     .page(transparent);
-    z-index: 9999999999;
+    .p-a();
+    z-index: 99999999999;
     > .loading-box {
         .center();
         .wh(140px);

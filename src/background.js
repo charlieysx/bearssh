@@ -5,13 +5,12 @@ import {
     createProtocol,
     installVueDevtools
 } from 'vue-cli-plugin-electron-builder/lib';
-import sshInstall from './node/ssh.js';
+import './node/node-ssh.js';
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
-let aboutWindow;
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: { secure: true, standard: true } }]);
@@ -33,7 +32,6 @@ function createWindow () {
             nodeIntegration: true
         }
     });
-    sshInstall(mainWindow);
 
     if (process.env.WEBPACK_DEV_SERVER_URL) {
         console.log(process.env.WEBPACK_DEV_SERVER_URL);
@@ -116,7 +114,7 @@ const getMenuData = function () {
         {
             label: app.getName(),
             submenu: [
-                { role: 'about', label: '关于24好玩工具' },
+                { role: 'about', label: 'bearssh' },
                 { type: 'separator' },
                 {
                     label: '设置',

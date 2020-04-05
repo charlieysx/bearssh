@@ -42,8 +42,8 @@ export default {
             };
         },
         clickDock(item) {
-            if (this.$bus.includesApp(item.appName)) {
-                this.$bus.activeApps(item.appName);
+            if (this.$bus.includesApp(item)) {
+                this.$bus.activeApps(item);
             } else {
                 this.$bus.addApp(item);
             }
@@ -59,13 +59,13 @@ export default {
                     {this.$bus.desktop.dockList.map(item=> {
                         return (
                             <div class="dock-item" 
-                                key={item.appName}
+                                key={item.sign}
                                 onContextmenu={this.rightClickDock(item)}
                                 onClick={this.clickDock.bind(this, item)}>
                                 <div class="dock-icon" style={{ backgroundImage: `url(${item.icon})` }}>
                                     <p class="dock-tip">{item.name}</p>
                                 </div>
-                                {this.$bus.includesApp(item.appName) && <div class="dot"></div>}
+                                {this.$bus.includesApp(item) && <div class="dot"></div>}
                             </div>
                         );
                     })}
