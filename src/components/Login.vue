@@ -60,40 +60,6 @@ export default {
             }).finally(()=> {
                 this.$loading.hide();
             });
-
-            // conn.on('ready', ()=> {
-            //     console.log('Client :: ready');
-            //     // conn.shell(function(err, stream) {
-            //     //     if (err) throw err;
-            //     //     stream.on('close', function() {
-            //     //         console.log('Stream :: close');
-            //     //     }).on('data', function(data) {
-            //     //         console.log('OUTPUT2222: ' + data);
-            //     //     }).on('error', function(data) {
-            //     //         console.log('OUTPUT: ' + data);
-            //     //     });
-            //     //     stream.write('cd /codebear\n');
-            //     //     stream.write('cd test\n');
-            //     // });
-            //     conn.sftp(function(err, sftp) {
-            //         ipcRenderer.send('open-directory-dialog', 'openDirectory');
-            //         ipcRenderer.on('selectedItem', (e, path)=> {
-            //             sftp.fastGet('/codebear/www/game/snake/main.js', `${path}/snake.js`, function (data) {
-            //                 sftp.fastGet('/codebear/www/game/snake/main.js', '/Users/codebear/snake2.js', function (data) {
-            //                     console.log(2, data);
-            //                 });
-            //                 console.log(1, data);
-            //             });
-            //         });
-            //     });
-            // }).on('error', (e)=> {
-            //     console.log(e);  
-            // }).connect({
-            //     host: this.host,
-            //     port: 22,
-            //     username: this.username,
-            //     password: this.password
-            // });
         }
     },
     render(h) {

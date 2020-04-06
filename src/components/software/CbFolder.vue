@@ -1,6 +1,7 @@
 <script>
 import { ipcRenderer } from 'electron';
 import CbApp from '@c/common/CbApp';
+
 export default {
     name: 'CbFolder',
     extends: CbApp,
@@ -19,6 +20,7 @@ export default {
         return {
             pathList: [],
             rightList: [],
+            rightClickFilePath: ''
         };
     },
     created() {
@@ -83,15 +85,20 @@ export default {
             this.pathList.splice(index + 1);
             this.pathList.push(item.filename);
             this.cacheIndex = index;
+            this.rightList.splice(this.cacheIndex);
             if (item.type === 'd' || item.type === 'l') {
                 this.readdir();
-            } else  if (item.type === '-') {
-                this.rightList.splice(this.cacheIndex);
+            }
+        },
+        dblClickFile(item, index) {
+            if (item.type === '-') {
                 const ext = item.path.split('.').slice(-1)[0];
                 let config = '';
-                if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
+                if (['png', 'jpg', 'jpeg', 'gif', 'ico'].includes(ext)) {
                     config = this.$bus.getAppConfig('CbImage', '2');
                     config && this.$bus.addApp(config, {path: item.path});
+                } else if(['mp3', 'mp4', 'avi', 'zip', 'ttf', 'otf'].includes(ext)) {
+                    this.$message.error('暂不支持打开该文件');
                 } else {
                     config = this.$bus.getAppConfig('CbEditor', '3');
                     config && this.$bus.addApp(config, {path: item.path});
@@ -119,22 +126,81 @@ export default {
                 // }
             };
         },
+        onContextMenuClick(e, file, index) {
+            e.stopPropagation();
+            e.preventDefault();
+            this.rightClickFilePath = [...this.pathList.slice(0, index + 1), file.filename].join('/');
+            this.$rightMenu.show(e.pageX, e.pageY, [
+                {
+                    type: 'download',
+                    text: '下载'
+                }
+            ], (item)=> {
+                if (item.type === 'download') {
+                    this.$ssh.download(file)
+                        .then(res=> {
+                            this.$message.success('下载完成');
+                        })
+                        .catch(e=> {
+                            console.log(e);
+                            this.$message.error('下载失败');
+                        });
+                }
+            });
+        },
+        __onMouseDown(e) {
+            this.hideMenu();
+        },
+        hideMenu() {
+            if (this.rightClickFilePath === '') {
+                return '';
+            }
+            this.rightClickFilePath = '';
+            this.$rightMenu.close();
+        },
+        throttle(func, delay) {            
+            let prev = Date.now();            
+            return function() {                
+                const context = this;                
+                const args = arguments;                
+                const now = Date.now();                
+                if (now - prev >= delay) {                    
+                    func.apply(context, args);                    
+                    prev = Date.now();                
+                }            
+            };        
+        },
+        renderItem(item, index) {
+            return (
+                <div class={[
+                    'item',
+                    (this.dirPath + '/').indexOf(item.path + '/') === 0 ? 'active' : '',
+                    `file-type-${item.type}`,
+                    item.isHidden ? 'file-type-hidden' : '',
+                    this.rightClickFilePath === item.path ? 'show-border' : ''
+                ]}
+                onContextmenu={(e)=> this.onContextMenuClick(e, item, index)}
+                onDblclick={this.dblClickFile.bind(this, item, index)}
+                onClick={this.throttle(this.clickFile.bind(this, item, index), 300)}>
+                    <img class="icon" src={item.icon} />
+                    <div class="name">
+                        {
+                            item.showInput ? 
+                                <input v-model={item.inputValue} onClick={e=> e.stopPropagation()} /> : 
+                                <span onClick={this.clickFileName(item, index)}>
+                                    {item.filename}
+                                </span>
+                        }
+                    </div>
+                </div>
+            );
+        },
         renderContent(h) {
             return (
-                <div class="folder-wrap">
+                <div class="folder-wrap" onClick={this.hideMenu.bind(this)}>
                     <div class="left-dir">
                         {this.$bus.file.list.map(item=> {
-                            return (
-                                <div class={[
-                                    'item',
-                                    (this.dirPath + '/').indexOf(item.path + '/') === 0 ? 'active' : '',
-                                    `file-type-${item.type}`,
-                                    item.isHidden ? 'file-type-hidden' : ''
-                                ]}
-                                onClick={this.clickFile.bind(this, item, 0)}>
-                                    {item.filename}
-                                </div>
-                            );
+                            return this.renderItem(item, 0);
                         })}
                     </div>
                     <div class="right-dir" ref="rightDir">
@@ -142,23 +208,7 @@ export default {
                             return (
                                 <div class="list-col">
                                     {list.map(item=> {
-                                        return (
-                                            <div class={[
-                                                'item',
-                                                (this.dirPath + '/').indexOf(item.path + '/') === 0 ? 'active' : '',
-                                                `file-type-${item.type}`,
-                                                item.isHidden ? 'file-type-hidden' : ''
-                                            ]}
-                                            onClick={this.clickFile.bind(this, item, index + 1)}>
-                                                {
-                                                    item.showInput ? 
-                                                        <input v-model={item.inputValue} onClick={e=> e.stopPropagation()} /> : 
-                                                        <span onClick={this.clickFileName(item, index + 1)}>
-                                                            {item.filename}
-                                                        </span>
-                                                }
-                                            </div>
-                                        );
+                                        return this.renderItem(item, index + 1);
                                     })}
                                 </div>
                             );
@@ -195,25 +245,6 @@ export default {
         display: inline-block;
         background-color: #303030;
         border-right: 1px solid #000000;
-        > .item {
-            .wh(100%, 20px);
-            .text-line();
-            padding: 0 5px;
-            box-sizing: border-box;
-            color: white;
-            cursor: default;
-            &.active {
-                background-color: #59575a;
-            }
-        }
-        > .file-type {
-            &-l {
-                color: #73f9fd;
-            }
-            &-hidden {
-                color: #5e5d5c;
-            }
-        }
     }
     > .right-dir {
         .p-r();
@@ -226,24 +257,40 @@ export default {
             .wh(180px, 100%);
             .scroll();
             border-right: 1px solid #000000;
-            > .item {
-                .wh(100%, 20px);
-                .text-line();
-                padding: 0 5px;
-                box-sizing: border-box;
-                color: white;
-                cursor: default;
-                &.active {
-                    background-color: #59575a;
-                }
+        }
+    }
+    >.right-dir> .list-col,> .left-dir {
+        > .item {
+            .wh(100%, 20px);
+            .text-line();
+            padding: 0 5px;
+            box-sizing: border-box;
+            color: white;
+            cursor: default;
+            .flex(flex-start);
+            font-size: 16px;
+            line-height: 16px;
+            &.active {
+                background-color: #59575a;
             }
-            > .file-type {
-                &-l {
-                    color: #73f9fd;
-                }
-                &-hidden {
-                    color: #5e5d5c;
-                }
+            >.icon {
+                .wh(15px);
+                margin-right: 5px;
+            }
+            > .name {
+                flex: 1;
+                .text-line();
+            }
+        }
+        > .show-border {
+            border: 1px solid #ffffff;
+        }
+        > .file-type {
+            &-l {
+                color: #73f9fd;
+            }
+            &-hidden {
+                color: #5e5d5c;
             }
         }
     }

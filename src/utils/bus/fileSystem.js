@@ -1,5 +1,22 @@
 import Vue from 'vue';
 
+const iconMap = {
+    conf: ['conf'],
+    css: ['css', 'less', 'scss'],
+    font: ['ttf', 'otf'],
+    html: ['html', 'htm'],
+    img: ['png', 'jpg', 'jpeg', 'ico', 'svg', 'gif'],
+    js: ['js'],
+    json: ['json'],
+    md: ['md'],
+    music: ['mp3'],
+    php: ['php'],
+    sh: ['sh'],
+    txt: ['txt'],
+    video: ['mp4', 'avi'],
+    zip: ['zip']
+};
+
 export default {
     data () {
         return {
@@ -22,6 +39,25 @@ export default {
             }
             return list;
         },
+        getIcon(type, filename) {
+            let icon = 'common';
+            if (type === 'd') {
+                icon = 'folder';
+            } else if (type === 'l') {
+                icon = 'link';
+            } else if (type === '-') {
+                const ext = filename.split('.').slice(-1)[0] || '';
+                if (ext) {
+                    for (let key in iconMap) {
+                        if (iconMap[key].includes(ext) || iconMap[key].includes(ext.toUpperCase())) {
+                            icon = key;
+                            break;
+                        }
+                    }
+                }
+            }
+            return require(`@imgs/icon-file-type/${icon}.png`);
+        },
         saveFileList(path, list) {
             if (path !== '/') {
                 path += '/';
@@ -34,6 +70,7 @@ export default {
                     isHidden: item.filename[0] === '.',
                     path: `${path}${item.filename}`,
                     list: [],
+                    icon: this.getIcon(item.longname[0], item.filename),
                     ...item
                 };
             }).sort((a, b)=> {
