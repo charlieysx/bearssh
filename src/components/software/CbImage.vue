@@ -8,7 +8,7 @@ export default {
         appName: 'CbImage',
         sign: '2',
         name: '图片预览',
-        icon: require('@imgs/icon-folder.png'),
+        icon: require('@imgs/icon-image.png'),
         config: {
             path: '',
             width: 500,
@@ -30,24 +30,24 @@ export default {
         } else {
             this.changePath();
             const ext = this.path.split('.').slice(-1)[0];
-            if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
-                this.imgType = ext;
-                this.loading = true;
-                this.$ssh.readFile(this.path, '')
-                    .then(data=> {
-                        let binary = '';
-                        let bytes = new Uint8Array(data);
-                        for (let len = bytes.byteLength, i = 0; i < len; ++i) {
-                            binary += String.fromCharCode(bytes[i]);
-                        }
-                        this.base64 = `data:image/${ext};base64,${window.btoa(binary)}`;
-                        this.loading = false;
-                    })
-                    .catch(e=> {
-                        this.$message.error('图片加载失败');
-                        console.log(e);
-                    });
-            }
+            // if (['png', 'jpg', 'jpeg', 'gif', 'ico'].includes(ext)) {
+            this.imgType = ext;
+            this.loading = true;
+            this.$ssh.readFile(this.path, '')
+                .then(data=> {
+                    let binary = '';
+                    let bytes = new Uint8Array(data);
+                    for (let len = bytes.byteLength, i = 0; i < len; ++i) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+                    this.base64 = `data:image/${ext};base64,${window.btoa(binary)}`;
+                    this.loading = false;
+                })
+                .catch(e=> {
+                    this.$message.error('图片加载失败');
+                    console.log(e);
+                });
+            // }
         }
     },
     methods: {

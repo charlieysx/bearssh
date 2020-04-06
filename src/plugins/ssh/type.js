@@ -1,5 +1,7 @@
 export default {
     CONNECT: 'connect',
     READDIR : 'readdir',
-    READFILE: 'readFile'
+    READFILE: 'readFile',
+    DOWNLOADFILE: 'downloadFile',
+    DOWNLOADDIR: 'downloadDir'
 };

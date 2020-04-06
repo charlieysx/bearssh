@@ -26,12 +26,12 @@ export default {
     methods: {
         renderSubTitle(h) {
             return <div class="test-wrap" style="position: relative;">
-                test
+                自定义头部子标题
             </div>;
         },
         renderContent(h) {
             return <div class="test-wrap">
-                test
+                内容
             </div>;
         }
     },

@@ -88,12 +88,60 @@ const sendFail = (sender, id, data)=> {
     });
 };
 
+const mkdirLocalDir = (localPath, root)=> {
+    if (root.type === '-') {
+        return [root];
+    }
+    if (!fs.existsSync(localPath)) {
+        fs.mkdirSync(localPath);
+    }
+    const list = [];
+    for (let i = 0;i < root.list.length;++i) {
+        const item = root.list[i];
+        const path = localPath + '/' + item.filename;
+        if (item.type === '-') {
+            item.localPath = path;
+            list.push(item);
+        } else {
+            list.push(...mkdirLocalDir(path, item));
+        }
+    }
+    return list;
+};
+
+let keepAliveInterval = null;
 ipcMain.on(IPC.SSH, async (e, type, {data, id}) => {
     switch (type) {
     case SSHTYPE.CONNECT:
         sshClient
             .removeAllListeners()
             .on('ready', ()=> {
+                sshClient.shell({rows: 150, cols: 250, term: 'vt100'}, {}, (err, stream) => {
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
+                    if (stream === false) {
+                        console.log('log', 'stream false');
+                    } else {
+                        if (keepAliveInterval) {
+                            clearInterval(keepAliveInterval);
+                        }
+                        keepAliveInterval = setInterval(() => {
+                            if (stream.writable) {
+                                // 保持连接
+                                stream.write('\b');
+                            }
+                        }, 1500);
+                        stream.once('close', () => {
+                            console.log('close');
+                        });
+                        stream.on('error', err => sendFail(e.sender, id, err));
+                        stream.on('data', data => {
+                            // console.log('data', data);
+                        });
+                    }
+                });
                 sendSuccess(e.sender, id);
             }).on('error', (err)=> {
                 console.log('err', err);
@@ -141,6 +189,73 @@ ipcMain.on(IPC.SSH, async (e, type, {data, id}) => {
                 sftp.end();
                 sendFail(e.sender, id, err);
                 console.log(err);
+            }
+        });
+        break;
+    case SSHTYPE.DOWNLOADFILE:
+        dialog.showOpenDialog({
+            properties: ['openDirectory']
+        }, (files)=> {
+            if (files && files.length > 0) {
+                sshClient.sftp(function(err, sftp) {
+                    if (err) {
+                        sendFail(e.sender, id, err);
+                        console.log(err);
+                        return;
+                    }
+                    try {
+                        sftp.fastGet(data.file.path, files[0] + '/' + data.file.filename, function(err, data) {
+                            sftp.end();
+                            if (err) {
+                                sendFail(e.sender, id, err);
+                                console.log(err);
+                                return;
+                            }
+                            sendSuccess(e.sender, id, data);
+                        });
+                    } catch(err) {
+                        sftp.end();
+                        sendFail(e.sender, id, err);
+                        console.log(err);
+                    }
+                });
+            }
+        });
+        break;
+    case SSHTYPE.DOWNLOADDIR:
+        dialog.showOpenDialog({
+            properties: ['openDirectory']
+        }, (files)=> {
+            if (files && files.length > 0) {
+                sshClient.sftp(async function(err, sftp) {
+                    if (err) {
+                        sendFail(e.sender, id, err);
+                        console.log(err);
+                        return;
+                    }
+                    try {
+                        const list = mkdirLocalDir(files[0], data.root);
+                        for (let i = 0;i < list.length;++i) {
+                            console.log(list[i]);
+                            await new Promise((resolve, reject)=> {
+                                sftp.fastGet(list[i].path, list[i].localPath, function(err, data) {
+                                    if (err) {
+                                        sftp.end();
+                                        reject();
+                                        console.log(err);
+                                        return;
+                                    }
+                                    resolve();
+                                });
+                            });
+                        }
+                        sendSuccess(e.sender, id, '');
+                    } catch(err) {
+                        sftp.end();
+                        sendFail(e.sender, id, err);
+                        console.log(err);
+                    }
+                });
             }
         });
         break;
