@@ -25,3 +25,5 @@ yarn.lock*
 /dist_electron
 
 package-lock.json
+
+example-img/
