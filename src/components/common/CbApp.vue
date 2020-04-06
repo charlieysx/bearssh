@@ -88,10 +88,12 @@ export default {
         }
     },
     methods: {
+        __onClick(e) {},
+        __onMouseDown(e) {},
         __mousedown(e) {
+            this.__onMouseDown(e);
             if (!this.isActive) {
-                document.addEventListener('mouseup', this.__mouseup, true);
-                return;
+                this.$bus.activeApp(this.uuid);
             }
             e.stopPropagation();
             const classList = e.target.classList;
@@ -118,9 +120,6 @@ export default {
             document.addEventListener('mouseup', this.__mouseup, true);
         },
         __mousemove(e) {
-            if (!this.isActive) {
-                return;
-            }
             e.stopPropagation();
             e.preventDefault();
             if (!this.mouseXY) {
@@ -144,9 +143,6 @@ export default {
             this.widgetXY = null;
             this.resizeWH = null;
             this.dragType = '';
-            if (!this.isActive) {
-                this.$bus.activeApp(this.uuid);
-            }
         },
         __doResize(e) {
             let dx = e.pageX - this.mouseXY.x;
@@ -252,6 +248,7 @@ export default {
     render(h) {
         return (
             <div class="__cb-app"
+                onClick={this.__onClick}
                 onMousedown={this.__mousedown}
                 style={{
                     top: this.innerTop + 'px',
