@@ -16,9 +16,17 @@ export default {
         Desktop,
         Login
     },
+    methods: {
+        __mousedown(e) {
+            this.$rightMenu.close();
+        }
+    },
     render(h) {
         return (
-            <div id="app"  style={this.$bus.system.bgStyle}>
+            <div 
+                id="app"
+                style={this.$bus.system.bgStyle}
+                onMousedown={this.__mousedown}>
                 <Tool />
                 <Desktop />
                 <Dock />
@@ -27,6 +35,7 @@ export default {
                     !this.$bus.hadLogin && <Login />
                 }
                 <Loading />
+                <RightMenu />
             </div>
         );
     }

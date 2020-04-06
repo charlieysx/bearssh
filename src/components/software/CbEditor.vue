@@ -17,7 +17,7 @@ export default {
         appName: 'CbEditor',
         sign: '3',
         name: '编辑器',
-        icon: require('@imgs/icon-folder.png'),
+        icon: require('@imgs/icon-editor.png'),
         config: {
             path: '',
             readOnly: false,
@@ -101,10 +101,10 @@ export default {
                     class="input-wrap"
                     v-model={this.searchLanguage}
                     onKeyup={(e)=> {
-                        if (e.keyCode === 27) {
+                        if (e.keyCode === 27) { // 按下esc键
                             this.showSelectLanguages = false;
                             this.searchLanguage = '';
-                        } else if (e.keyCode === 13) {
+                        } else if (e.keyCode === 13) { // 按下回车键
                             const language = this.filterSearchLanguages.find(item=> item === this.searchLanguage);
                             if (language) {
                                 this.selectLanguage(language);

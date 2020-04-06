@@ -59,6 +59,51 @@ class SSH {
     async readFile(path = '', encoding = 'utf-8') {
         return this.send(TYPE.READFILE, {path, encoding});
     }
+
+    async getFiles(root) {
+        if (root.type !== 'd') {
+            return;
+        }
+        root.list = await this.readdir(root.path);
+        for (let i = 0;i < root.list.length;++i) {
+            const file = root.list[i];
+            const type = file.longname[0];
+            if (type !== 'd' && type !== '-') {
+                continue;
+            }
+            root.list[i] = {
+                filename: file.filename,
+                path: `${root.path}/${file.filename}`,
+                type,
+                list: []
+            };
+            await this.getFiles(root.list[i]);
+        }
+    }
+
+    async download(file) {
+        console.log(file);
+        if (!file) {
+            return;
+        }
+        // 下载文件
+        if (file.type === '-') {
+            return this.send(TYPE.DOWNLOADFILE, {file});
+        } else if (file.type === 'd') {
+            // 下载文件夹，需要递归查询所有文件
+            const root = {
+                filename: file.filename,
+                path: file.path,
+                type: file.type,
+                list: []
+            };
+            await this.getFiles(root);
+            console.log(root);
+            return this.send(TYPE.DOWNLOADDIR, {root});
+        } else {
+            throw '不支持下载类型该文件';
+        }
+    }
 }
 
 Vue.$ssh = Vue.prototype.$ssh = new SSH();
