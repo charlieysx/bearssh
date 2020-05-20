@@ -129,32 +129,80 @@ export default {
         onContextMenuClick(e, file, index) {
             e.stopPropagation();
             e.preventDefault();
-            this.rightClickFilePath = [...this.pathList.slice(0, index + 1), file.filename].join('/');
-            this.$rightMenu.show(e.pageX, e.pageY, [
-                {
-                    type: 'download',
-                    text: '下载'
+            if (file) {
+                this.rightClickFilePath = [...this.pathList.slice(0, index + 1), file.filename].join('/');
+                const list = [
+                    {
+                        type: 'download',
+                        text: '下载'
+                    },
+                    {
+                        type: 'delete',
+                        text: '删除'
+                    }
+                ];
+                if (file.type === 'd') {
+                    // 目前不支持删除文件夹
+                    list.pop();
                 }
-            ], (item)=> {
-                if (item.type === 'download') {
-                    this.$ssh.download(file)
-                        .then(res=> {
-                            this.$message.success('下载完成');
-                        })
-                        .catch(e=> {
-                            console.log(e);
-                            this.$message.error('下载失败');
-                        });
-                }
-            });
+                this.$rightMenu.show(e.pageX, e.pageY, list, (item)=> {
+                    if (item.type === 'download') {
+                        this.$ssh.download(file)
+                            .then(res=> {
+                                this.$message.success('下载完成');
+                            })
+                            .catch(e=> {
+                                console.log(e);
+                                this.$message.error('下载失败');
+                            });
+                    } else if (item.type === 'delete') {
+                        this.$ssh.deleteFile(file)
+                            .then(res=> {
+                                this.$message.success('删除成功');
+                                this.pathList.splice(index + 2);
+                                this.rightList.splice(index);
+                                this.readdir();
+                                // const isSelect = (this.dirPath + '/').indexOf(file.path + '/') === 0;
+                            })
+                            .catch(e=> {
+                                console.log(e);
+                                this.$message.error('删除失败');
+                            });
+                    }
+                });
+            } else {
+                this.$rightMenu.show(e.pageX, e.pageY, [
+                    {
+                        type: 'refresh',
+                        text: '刷新'
+                    },
+                    {
+                        type: 'upload',
+                        text: '上传文件'
+                    }
+                ], (item)=> {
+                    if (item.type === 'upload') {
+                        const uploadPath = this.pathList.slice(0, index + 2);
+                        this.$ssh.uploadTo(uploadPath.join('/'))
+                            .then(res=> {
+                                this.$message.success('上传完成');
+                            })
+                            .catch(e=> {
+                                console.log(e);
+                                this.$message.error('上传失败');
+                            });
+                    } else if (item.type === 'refresh') {
+                        this.pathList.splice(index + 2);
+                        this.rightList.splice(index);
+                        this.readdir();
+                    }
+                });
+            }
         },
         __onMouseDown(e) {
             this.hideMenu();
         },
         hideMenu() {
-            if (this.rightClickFilePath === '') {
-                return '';
-            }
             this.rightClickFilePath = '';
             this.$rightMenu.close();
         },
@@ -206,7 +254,7 @@ export default {
                     <div class="right-dir" ref="rightDir">
                         {this.rightList.map((list, index)=> {
                             return (
-                                <div class="list-col">
+                                <div class="list-col" onContextmenu={(e)=> this.onContextMenuClick(e, null, index)}>
                                     {list.map(item=> {
                                         return this.renderItem(item, index + 1);
                                     })}

@@ -3,5 +3,7 @@ export default {
     READDIR : 'readdir',
     READFILE: 'readFile',
     DOWNLOADFILE: 'downloadFile',
-    DOWNLOADDIR: 'downloadDir'
+    DOWNLOADDIR: 'downloadDir',
+    UPLOADDIR: 'uploadDir',
+    DELETEFILT: 'deleteFile'
 };
