@@ -87,6 +87,11 @@ export default {
             });
             list = this.getListPointer(this.file.list, path.split('/').slice(1));
             list.push(...fileList.filter(item=> list.findIndex(file=> file.filename === item.filename) === -1));
+            for (let i = list.length - 1;i >= 0;--i) {
+                if (fileList.findIndex(file=> file.filename === list[i].filename) === -1) {
+                    list.splice(i, 1);
+                }
+            }
             return list;
         }
     }

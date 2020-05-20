@@ -62,12 +62,12 @@ const connectSSH = ({host, username, password})=> {
     });
 };
 
-ipcMain.on('open-directory-dialog', (e)=> {
+ipcMain.on('open-directory-dialog', (e, data)=> {
     dialog.showOpenDialog({
-        properties: ['openDirectory']
+        properties: data
     }, (files)=> {
         if (files) {
-            e.sender.send('selectedItem', files[0]);
+            e.sender.send('selectFile', files);
         }
     });
 });
@@ -89,6 +89,7 @@ const sendFail = (sender, id, data)=> {
 };
 
 const mkdirLocalDir = (localPath, root)=> {
+    localPath += `/${root.filename}`;
     if (root.type === '-') {
         return [root];
     }
@@ -236,7 +237,6 @@ ipcMain.on(IPC.SSH, async (e, type, {data, id}) => {
                     try {
                         const list = mkdirLocalDir(files[0], data.root);
                         for (let i = 0;i < list.length;++i) {
-                            console.log(list[i]);
                             await new Promise((resolve, reject)=> {
                                 sftp.fastGet(list[i].path, list[i].localPath, function(err, data) {
                                     if (err) {
@@ -259,7 +259,113 @@ ipcMain.on(IPC.SSH, async (e, type, {data, id}) => {
             }
         });
         break;
+    case SSHTYPE.UPLOADDIR:
+        dialog.showOpenDialog({
+            properties: ['openDirectory', 'openFile', 'showHiddenFiles']
+        }, (files)=> {
+            if (files && files.length > 0) {
+                sshClient.sftp(async function(err, sftp) {
+                    if (err) {
+                        sendFail(e.sender, id, err);
+                        console.log(err);
+                        return;
+                    }
+                    try {
+                        for (let i = 0;i < files.length;++i) {
+                            const rootFileName = files[i].split('/').splice(-1)[0];
+                            await uploadDir(data.filePath + '/' + rootFileName, files[i], sftp);
+                        }
+                        sendSuccess(e.sender, id, '');
+                    } catch(err) {
+                        sftp.end();
+                        sendFail(e.sender, id, err);
+                        console.log(err);
+                    }
+                });
+            }
+        });
+        break;
+    case SSHTYPE.DELETEFILT:
+        sshClient.sftp(async function(err, sftp) {
+            if (err) {
+                sendFail(e.sender, id, err);
+                console.log(err);
+                return;
+            }
+            try {
+                await new Promise((resolve, reject)=> {
+                    if (data.type === '-') {
+                        sftp.unlink(data.filePath, function(err) {
+                            if (err) {
+                                sendFail(e.sender, id, err);
+                                console.log(err);
+                                return;
+                            }
+                            resolve();
+                        });
+                    } else if (data.type === 'd') {
+                        sftp.rmdir(data.filePath, function(err) {
+                            if (err) {
+                                sendFail(e.sender, id, err);
+                                console.log(err);
+                                return;
+                            }
+                            resolve();
+                        });
+                    }
+                });
+                sendSuccess(e.sender, id, '');
+            } catch(err) {
+                sftp.end();
+                sendFail(e.sender, id, err);
+                console.log(err);
+            }
+        });
+        break;
     case 'exit':
         break;
     }
 });
+
+const createDir = async (remoteFilePath, sftp)=> {
+    return new Promise((resolve, reject)=> {
+        sftp.stat(remoteFilePath, function(err, stats) {
+            if (!stats || !stats.isDirectory()) {
+                sftp.mkdir(remoteFilePath, function(err) {
+                    if (err) {
+                        sftp.end();
+                        reject();
+                        console.log(err);
+                        return;
+                    }
+                    resolve();
+                });
+            } else {
+                resolve();
+            }
+        });
+    });
+};
+
+const uploadDir = async (remoteFilePath, file, sftp)=> {
+    const stat = fs.statSync(file);
+    if (stat.isFile()) {
+        await new Promise((resolve, reject)=> {
+            sftp.fastPut(file, remoteFilePath, function(err, data) {
+                if (err) {
+                    sftp.end();
+                    reject();
+                    console.log(err);
+                    return;
+                }
+                resolve();
+            });
+        });
+    } else if (stat.isDirectory()) {
+        await createDir(remoteFilePath, sftp);
+        const list = fs.readdirSync(file);
+        for (let i = 0;i < list.length;++i) {
+            await uploadDir(remoteFilePath + '/' + list[i], file + '/' + list[i], sftp);
+        }
+    }
+};
