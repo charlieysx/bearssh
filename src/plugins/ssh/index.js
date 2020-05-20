@@ -82,7 +82,6 @@ class SSH {
     }
 
     async download(file) {
-        console.log(file);
         if (!file) {
             return;
         }
@@ -98,11 +97,24 @@ class SSH {
                 list: []
             };
             await this.getFiles(root);
-            console.log(root);
             return this.send(TYPE.DOWNLOADDIR, {root});
         } else {
             throw '不支持下载类型该文件';
         }
+    }
+
+    async uploadTo(filePath) {
+        if (!filePath) {
+            return;
+        }
+        return this.send(TYPE.UPLOADDIR, {filePath});
+    }
+
+    async deleteFile(file) {
+        if (!file) {
+            return;
+        }
+        return this.send(TYPE.DELETEFILT, {type: file.type, filePath: file.path});
     }
 }
 
