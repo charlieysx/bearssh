@@ -24,6 +24,4 @@ yarn.lock*
 #Electron-builder output
 /dist_electron
 
-package-lock.json
-
 example-img/
