@@ -6,7 +6,7 @@
   "author": "CodeBear",
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build --no-clean",
+    "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "compress": "node scripts/tinypng/index.js",
     "electron:build": "vue-cli-service electron:build",
@@ -33,6 +33,7 @@
     "vue-slicksort": "^1.1.3"
   },
   "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.9.6",
     "@vue/cli-plugin-babel": "^3.10.0",
     "@vue/cli-plugin-eslint": "^3.10.0",
     "@vue/cli-service": "^3.10.0",
