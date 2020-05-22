@@ -80,7 +80,7 @@ ipcMain.on(IPC.SSH, async (e, type, {data, id}) => {
                             }
                         }, 1500);
                         stream.once('close', () => {
-                            console.log('close');
+                            sendFail(e.sender, -1, {type: 'close'});
                         });
                         stream.on('error', err => sendFail(e.sender, id, err));
                         stream.on('data', data => {
@@ -206,7 +206,7 @@ ipcMain.on(IPC.SSH, async (e, type, {data, id}) => {
         break;
     case SSHTYPE.UPLOADDIR:
         dialog.showOpenDialog({
-            properties: ['openDirectory', 'openFile', 'showHiddenFiles']
+            properties: ['openDirectory', 'openFile', 'showHiddenFiles', 'multiSelections']
         }, (files)=> {
             if (files && files.length > 0) {
                 sshClient.sftp(async function(err, sftp) {
