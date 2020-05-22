@@ -7,61 +7,6 @@ const ssh2 = require('ssh2');
 
 const sshClient = new ssh2.Client();
 
-const connectSSH = ({host, username, password})=> {
-    return new Promise((resove, reject)=> {
-        sshClient.once('ready', (res)=> {
-            resove(res);
-            console.log('Client :: ready');
-
-            // conn.sftp(function(err, sftp) {
-            //     sftp.fastGet('/codebear/www/game/snake/main.js', '/Users/codebear/snake.js', function (data) {
-                    
-            //         console.log(data);
-            //     });
-            // });
-            // conn.shell(function(err, stream) {
-            //     if (err) throw err;
-            //     stream.on('close', function() {
-            //         console.log('Stream :: close');
-            //         // conn.end();
-            //         // conn.sftp(function(err, sftp) {
-            //         //     if (err) throw err;
-            //         //     sftp.readdir('/codebear/www/kanjiaapi', function(err, list) {
-            //         //         if (err) throw err;
-            //         //         console.dir(list);
-            //         //         conn.end();
-            //         //     });
-            //         // });
-            //     }).on('data', function(data) {
-            //         console.log('OUTPUT2222: ' + data);
-            //         mainWindow.webContents.send('ssh', {
-            //             type: 'log',
-            //             data
-            //         });
-            //     }).on('error', function(data) {
-            //         console.log('OUTPUT: ' + data);
-            //     });
-            //     // console.log(stream);
-            //     mainWindow.webContents.send('ssh', {
-            //         type: 'log',
-            //         data: stream
-            //     });
-            //     // stream.write('showkey -a\n');
-            //     // stream.write('cd /codebear\n');
-            //     // stream.write('cd test\n');
-            // });
-        }).once('error', (e)=> {
-            console.log(e);
-            reject(e);
-        }).connect({
-            host,
-            port: 22,
-            username,
-            password
-        });
-    });
-};
-
 ipcMain.on('open-directory-dialog', (e, data)=> {
     dialog.showOpenDialog({
         properties: data
@@ -135,7 +80,7 @@ ipcMain.on(IPC.SSH, async (e, type, {data, id}) => {
                             }
                         }, 1500);
                         stream.once('close', () => {
-                            console.log('close');
+                            sendFail(e.sender, -1, {type: 'close'});
                         });
                         stream.on('error', err => sendFail(e.sender, id, err));
                         stream.on('data', data => {
@@ -261,7 +206,7 @@ ipcMain.on(IPC.SSH, async (e, type, {data, id}) => {
         break;
     case SSHTYPE.UPLOADDIR:
         dialog.showOpenDialog({
-            properties: ['openDirectory', 'openFile', 'showHiddenFiles']
+            properties: ['openDirectory', 'openFile', 'showHiddenFiles', 'multiSelections']
         }, (files)=> {
             if (files && files.length > 0) {
                 sshClient.sftp(async function(err, sftp) {

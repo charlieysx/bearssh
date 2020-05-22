@@ -8,6 +8,7 @@ module.exports = {
         ]
     ],
     "plugins": [
+        "@babel/plugin-transform-runtime",
         "syntax-dynamic-import",
         [
             "component",
